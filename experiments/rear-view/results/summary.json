@@ -1,0 +1,550 @@
+{
+  "cohort": {
+    "FRONT": {
+      "n": 832,
+      "facing_away_by_gt_shoulders": 0.0336538462,
+      "ears_visible_mean": 1.2560096154,
+      "median_bbox_h": 251.85
+    },
+    "OBLIQUE": {
+      "n": 384,
+      "facing_away_by_gt_shoulders": 0.3255208333,
+      "ears_visible_mean": 0.9791666667,
+      "median_bbox_h": 198.5
+    },
+    "PROFILE": {
+      "n": 96,
+      "facing_away_by_gt_shoulders": 0.5104166667,
+      "ears_visible_mean": 0.9791666667,
+      "median_bbox_h": 181.95
+    },
+    "REAR": {
+      "n": 363,
+      "facing_away_by_gt_shoulders": 0.8071625344,
+      "ears_visible_mean": 1.0137741047,
+      "median_bbox_h": 162.2
+    }
+  },
+  "detection_failure_rate": {
+    "FRONT": {
+      "blazepose_full": 0.0733173077,
+      "blazepose_heavy": 0.0685096154,
+      "movenet_thunder": 0.0,
+      "rtmpose_m": 0.0
+    },
+    "OBLIQUE": {
+      "blazepose_full": 0.1875,
+      "blazepose_heavy": 0.1692708333,
+      "movenet_thunder": 0.0,
+      "rtmpose_m": 0.0
+    },
+    "PROFILE": {
+      "blazepose_full": 0.1979166667,
+      "blazepose_heavy": 0.1875,
+      "movenet_thunder": 0.0,
+      "rtmpose_m": 0.0
+    },
+    "REAR": {
+      "blazepose_full": 0.3112947658,
+      "blazepose_heavy": 0.3002754821,
+      "movenet_thunder": 0.0,
+      "rtmpose_m": 0.0
+    }
+  },
+  "swap_rate": {
+    "FRONT": {
+      "blazepose_full": 0.0402075227,
+      "blazepose_heavy": 0.0309677419,
+      "movenet_thunder": 0.0084134615,
+      "rtmpose_m": 0.0048076923
+    },
+    "OBLIQUE": {
+      "blazepose_full": 0.108974359,
+      "blazepose_heavy": 0.0940438871,
+      "movenet_thunder": 0.046875,
+      "rtmpose_m": 0.0260416667
+    },
+    "PROFILE": {
+      "blazepose_full": 0.1298701299,
+      "blazepose_heavy": 0.0897435897,
+      "movenet_thunder": 0.0416666667,
+      "rtmpose_m": 0.0
+    },
+    "REAR": {
+      "blazepose_full": 0.156,
+      "blazepose_heavy": 0.1535433071,
+      "movenet_thunder": 0.0936639118,
+      "rtmpose_m": 0.0192837466
+    }
+  },
+  "swap_rate_confirmed": {
+    "blazepose_full|FRONT": {
+      "n": 743,
+      "k": 26,
+      "rate": 0.034993270524899055,
+      "ci": [
+        0.023990369952716247,
+        0.05077996956773895
+      ]
+    },
+    "blazepose_full|REAR": {
+      "n": 207,
+      "k": 33,
+      "rate": 0.15942028985507245,
+      "ci": [
+        0.11582486204310388,
+        0.21542665568394806
+      ]
+    },
+    "blazepose_heavy|FRONT": {
+      "n": 747,
+      "k": 20,
+      "rate": 0.02677376171352075,
+      "ci": [
+        0.01739752723858207,
+        0.04099241812406166
+      ]
+    },
+    "blazepose_heavy|REAR": {
+      "n": 209,
+      "k": 30,
+      "rate": 0.14354066985645933,
+      "ci": [
+        0.10243191880483447,
+        0.19751696336857522
+      ]
+    },
+    "movenet_thunder|FRONT": {
+      "n": 804,
+      "k": 5,
+      "rate": 0.006218905472636816,
+      "ci": [
+        0.0026591445807758597,
+        0.014474907441303716
+      ]
+    },
+    "movenet_thunder|REAR": {
+      "n": 293,
+      "k": 21,
+      "rate": 0.07167235494880546,
+      "ci": [
+        0.04735255161907619,
+        0.10707863322833065
+      ]
+    },
+    "rtmpose_m|FRONT": {
+      "n": 804,
+      "k": 3,
+      "rate": 0.0037313432835820895,
+      "ci": [
+        0.0012697645105749452,
+        0.01091282177861838
+      ]
+    },
+    "rtmpose_m|REAR": {
+      "n": 293,
+      "k": 3,
+      "rate": 0.010238907849829351,
+      "ci": [
+        0.00348808241102268,
+        0.029666300263103858
+      ]
+    }
+  },
+  "swap_rate_decisive": {
+    "FRONT": {
+      "blazepose_full": 0.0104477612,
+      "blazepose_heavy": 0.0073529412,
+      "movenet_thunder": 0.0049261084,
+      "rtmpose_m": 0.0012135922
+    },
+    "OBLIQUE": {
+      "blazepose_full": 0.025974026,
+      "blazepose_heavy": 0.0245901639,
+      "movenet_thunder": 0.0174418605,
+      "rtmpose_m": 0.0167597765
+    },
+    "PROFILE": {
+      "blazepose_full": 0.0666666667,
+      "blazepose_heavy": 0.0338983051,
+      "movenet_thunder": 0.0119047619,
+      "rtmpose_m": 0.0
+    },
+    "REAR": {
+      "blazepose_full": 0.064516129,
+      "blazepose_heavy": 0.0478723404,
+      "movenet_thunder": 0.0464396285,
+      "rtmpose_m": 0.0171428571
+    }
+  },
+  "decisive_fraction": {
+    "FRONT": {
+      "blazepose_full": 0.869001297,
+      "blazepose_heavy": 0.8774193548,
+      "movenet_thunder": 0.9759615385,
+      "rtmpose_m": 0.9903846154
+    },
+    "OBLIQUE": {
+      "blazepose_full": 0.7403846154,
+      "blazepose_heavy": 0.7648902821,
+      "movenet_thunder": 0.8958333333,
+      "rtmpose_m": 0.9322916667
+    },
+    "PROFILE": {
+      "blazepose_full": 0.7792207792,
+      "blazepose_heavy": 0.7564102564,
+      "movenet_thunder": 0.875,
+      "rtmpose_m": 0.9791666667
+    },
+    "REAR": {
+      "blazepose_full": 0.744,
+      "blazepose_heavy": 0.7401574803,
+      "movenet_thunder": 0.8898071625,
+      "rtmpose_m": 0.9641873278
+    }
+  },
+  "oks_corrected": {
+    "FRONT": {
+      "blazepose_full": 0.7480297782,
+      "blazepose_heavy": 0.7730633445,
+      "movenet_thunder": 0.9069990793,
+      "rtmpose_m": 0.9498787163
+    },
+    "OBLIQUE": {
+      "blazepose_full": 0.6878258526,
+      "blazepose_heavy": 0.7197631536,
+      "movenet_thunder": 0.863637849,
+      "rtmpose_m": 0.9244960339
+    },
+    "PROFILE": {
+      "blazepose_full": 0.669013974,
+      "blazepose_heavy": 0.7013517051,
+      "movenet_thunder": 0.8403994271,
+      "rtmpose_m": 0.9291869792
+    },
+    "REAR": {
+      "blazepose_full": 0.662691088,
+      "blazepose_heavy": 0.6731613937,
+      "movenet_thunder": 0.8178401019,
+      "rtmpose_m": 0.9298182534
+    }
+  },
+  "oks_raw": {
+    "FRONT": {
+      "blazepose_full": 0.7458848093,
+      "blazepose_heavy": 0.7713992594,
+      "movenet_thunder": 0.9056348365,
+      "rtmpose_m": 0.949963744
+    },
+    "OBLIQUE": {
+      "blazepose_full": 0.6831766442,
+      "blazepose_heavy": 0.7165231442,
+      "movenet_thunder": 0.8620154531,
+      "rtmpose_m": 0.9236981172
+    },
+    "PROFILE": {
+      "blazepose_full": 0.6464748961,
+      "blazepose_heavy": 0.6866945641,
+      "movenet_thunder": 0.8376328854,
+      "rtmpose_m": 0.9291869792
+    },
+    "REAR": {
+      "blazepose_full": 0.648505624,
+      "blazepose_heavy": 0.6649581535,
+      "movenet_thunder": 0.8016713196,
+      "rtmpose_m": 0.920744146
+    }
+  },
+  "pck02_corrected": {
+    "FRONT": {
+      "blazepose_full": 0.8265332892,
+      "blazepose_heavy": 0.8403811987,
+      "movenet_thunder": 0.9635535012,
+      "rtmpose_m": 0.9917311947
+    },
+    "OBLIQUE": {
+      "blazepose_full": 0.7788648654,
+      "blazepose_heavy": 0.7943099655,
+      "movenet_thunder": 0.9331309297,
+      "rtmpose_m": 0.9801638802
+    },
+    "PROFILE": {
+      "blazepose_full": 0.7564752208,
+      "blazepose_heavy": 0.7768365385,
+      "movenet_thunder": 0.9099643229,
+      "rtmpose_m": 0.9828175208
+    },
+    "REAR": {
+      "blazepose_full": 0.722748188,
+      "blazepose_heavy": 0.7268964094,
+      "movenet_thunder": 0.8714288678,
+      "rtmpose_m": 0.9767792397
+    }
+  },
+  "front_vs_rear": {
+    "blazepose_full": {
+      "oks_corr_front": 0.7531029071332437,
+      "oks_corr_rear": 0.6743016038647341,
+      "oks_raw_front": 0.7507427846567967,
+      "oks_raw_rear": 0.6606027004830918
+    },
+    "blazepose_heavy": {
+      "oks_corr_front": 0.7770752302543507,
+      "oks_corr_rear": 0.6899974114832537,
+      "oks_raw_front": 0.7756200053547524,
+      "oks_raw_rear": 0.6848475023923445
+    },
+    "movenet_thunder": {
+      "oks_corr_front": 0.9101122985074627,
+      "oks_corr_rear": 0.8322546143344709,
+      "oks_raw_front": 0.9091230136815921,
+      "oks_raw_rear": 0.8204166825938567
+    },
+    "rtmpose_m": {
+      "oks_corr_front": 0.9520308482587065,
+      "oks_corr_rear": 0.9337679317406145,
+      "oks_raw_front": 0.9518833768656717,
+      "oks_raw_rear": 0.9304743310580204
+    }
+  },
+  "shoulder_sign_accuracy": {
+    "FRONT": {
+      "blazepose_full": 0.9701686122,
+      "blazepose_heavy": 0.9767741935,
+      "movenet_thunder": 0.9819711538,
+      "rtmpose_m": 0.9891826923
+    },
+    "OBLIQUE": {
+      "blazepose_full": 0.8685897436,
+      "blazepose_heavy": 0.8934169279,
+      "movenet_thunder": 0.8984375,
+      "rtmpose_m": 0.9375
+    },
+    "PROFILE": {
+      "blazepose_full": 0.8181818182,
+      "blazepose_heavy": 0.8205128205,
+      "movenet_thunder": 0.84375,
+      "rtmpose_m": 0.9270833333
+    },
+    "REAR": {
+      "blazepose_full": 0.836,
+      "blazepose_heavy": 0.8464566929,
+      "movenet_thunder": 0.8953168044,
+      "rtmpose_m": 0.955922865
+    }
+  },
+  "shoulder_sign_summary": {
+    "blazepose_full": {
+      "overall": 0.9156028368794327,
+      "rear": 0.836,
+      "n_rear": 250,
+      "front": 0.9701686121919585,
+      "n_front": 771
+    },
+    "blazepose_heavy": {
+      "overall": 0.926367461430575,
+      "rear": 0.8464566929133859,
+      "n_rear": 254,
+      "front": 0.9767741935483871,
+      "n_front": 775
+    },
+    "movenet_thunder": {
+      "overall": 0.9361194029850747,
+      "rear": 0.8953168044077136,
+      "n_rear": 363,
+      "front": 0.9819711538461539,
+      "n_front": 832
+    },
+    "rtmpose_m": {
+      "overall": 0.9665671641791045,
+      "rear": 0.9559228650137741,
+      "n_rear": 363,
+      "front": 0.9891826923076923,
+      "n_front": 832
+    }
+  },
+  "confidence": {
+    "conf_nose": {
+      "FRONT": {
+        "blazepose_full": 0.9985753722,
+        "blazepose_heavy": 0.9952660232,
+        "movenet_thunder": 0.5600765,
+        "rtmpose_m": 0.96967247
+      },
+      "OBLIQUE": {
+        "blazepose_full": 0.9966295641,
+        "blazepose_heavy": 0.996481906,
+        "movenet_thunder": 0.503011526,
+        "rtmpose_m": 0.9021988151
+      },
+      "PROFILE": {
+        "blazepose_full": 0.9944703636,
+        "blazepose_heavy": 0.9982261154,
+        "movenet_thunder": 0.4383674583,
+        "rtmpose_m": 0.8572658646
+      },
+      "REAR": {
+        "blazepose_full": 0.992523548,
+        "blazepose_heavy": 0.9845559291,
+        "movenet_thunder": 0.2508682479,
+        "rtmpose_m": 0.6999692948
+      }
+    },
+    "conf_eyes": {
+      "FRONT": {
+        "blazepose_full": 0.9978262711,
+        "blazepose_heavy": 0.9944752787,
+        "movenet_thunder": 0.5791196214,
+        "rtmpose_m": 0.9994977632
+      },
+      "OBLIQUE": {
+        "blazepose_full": 0.9955339872,
+        "blazepose_heavy": 0.9949340063,
+        "movenet_thunder": 0.4650373776,
+        "rtmpose_m": 0.9014002448
+      },
+      "PROFILE": {
+        "blazepose_full": 0.9931377532,
+        "blazepose_heavy": 0.9976084487,
+        "movenet_thunder": 0.411927,
+        "rtmpose_m": 0.8375996562
+      },
+      "REAR": {
+        "blazepose_full": 0.991503108,
+        "blazepose_heavy": 0.982565189,
+        "movenet_thunder": 0.2515841322,
+        "rtmpose_m": 0.680906449
+      }
+    },
+    "conf_shoulders": {
+      "FRONT": {
+        "blazepose_full": 0.9988305927,
+        "blazepose_heavy": 0.9994493548,
+        "movenet_thunder": 0.6430080553,
+        "rtmpose_m": 0.7923663738
+      },
+      "OBLIQUE": {
+        "blazepose_full": 0.9987933654,
+        "blazepose_heavy": 0.9992314044,
+        "movenet_thunder": 0.5731097943,
+        "rtmpose_m": 0.7449839401
+      },
+      "PROFILE": {
+        "blazepose_full": 0.9980901558,
+        "blazepose_heavy": 0.9967126282,
+        "movenet_thunder": 0.5239880729,
+        "rtmpose_m": 0.7474698021
+      },
+      "REAR": {
+        "blazepose_full": 0.991223692,
+        "blazepose_heavy": 0.9924423071,
+        "movenet_thunder": 0.5520985041,
+        "rtmpose_m": 0.7465775675
+      }
+    },
+    "conf_mean": {
+      "FRONT": {
+        "blazepose_full": 0.872881952,
+        "blazepose_heavy": 0.8311890903,
+        "movenet_thunder": 0.5378361346,
+        "rtmpose_m": 0.7985892788
+      },
+      "OBLIQUE": {
+        "blazepose_full": 0.8439755545,
+        "blazepose_heavy": 0.8101612884,
+        "movenet_thunder": 0.4726753281,
+        "rtmpose_m": 0.7422019818
+      },
+      "PROFILE": {
+        "blazepose_full": 0.8373238052,
+        "blazepose_heavy": 0.7960276282,
+        "movenet_thunder": 0.4488258438,
+        "rtmpose_m": 0.7285548958
+      },
+      "REAR": {
+        "blazepose_full": 0.83315952,
+        "blazepose_heavy": 0.7819479764,
+        "movenet_thunder": 0.4277650826,
+        "rtmpose_m": 0.6930997961
+      }
+    }
+  },
+  "confidence_on_swapped": {
+    "blazepose_full": {
+      "n_swapped": 114,
+      "conf_swapped": 0.8033364912280702,
+      "conf_correct": 0.8622652862654321,
+      "conf_nose_swapped": 0.9926518245614034
+    },
+    "blazepose_heavy": {
+      "n_swapped": 100,
+      "conf_swapped": 0.7443513799999999,
+      "conf_correct": 0.8211785814479637,
+      "conf_nose_swapped": 0.9782345100000002
+    },
+    "movenet_thunder": {
+      "n_swapped": 63,
+      "conf_swapped": 0.35610638095238095,
+      "conf_correct": 0.49932896650124076,
+      "conf_nose_swapped": 0.3396117619047619
+    },
+    "rtmpose_m": {
+      "n_swapped": 21,
+      "conf_swapped": 0.6311563809523809,
+      "conf_correct": 0.7604075290205563,
+      "conf_nose_swapped": 0.7678178095238095
+    }
+  },
+  "by_face_visible_oks": {
+    "0": {
+      "blazepose_full": 0.662691088,
+      "blazepose_heavy": 0.6731613937,
+      "movenet_thunder": 0.8178401019,
+      "rtmpose_m": 0.9298182534
+    },
+    "1": {
+      "blazepose_full": 0.669013974,
+      "blazepose_heavy": 0.7013517051,
+      "movenet_thunder": 0.8403994271,
+      "rtmpose_m": 0.9291869792
+    },
+    "2": {
+      "blazepose_full": 0.6878258526,
+      "blazepose_heavy": 0.7197631536,
+      "movenet_thunder": 0.863637849,
+      "rtmpose_m": 0.9244960339
+    },
+    "3": {
+      "blazepose_full": 0.7480297782,
+      "blazepose_heavy": 0.7730633445,
+      "movenet_thunder": 0.9069990793,
+      "rtmpose_m": 0.9498787163
+    }
+  },
+  "by_face_visible_swap": {
+    "0": {
+      "blazepose_full": 0.156,
+      "blazepose_heavy": 0.1535433071,
+      "movenet_thunder": 0.0936639118,
+      "rtmpose_m": 0.0192837466
+    },
+    "1": {
+      "blazepose_full": 0.1298701299,
+      "blazepose_heavy": 0.0897435897,
+      "movenet_thunder": 0.0416666667,
+      "rtmpose_m": 0.0
+    },
+    "2": {
+      "blazepose_full": 0.108974359,
+      "blazepose_heavy": 0.0940438871,
+      "movenet_thunder": 0.046875,
+      "rtmpose_m": 0.0260416667
+    },
+    "3": {
+      "blazepose_full": 0.0402075227,
+      "blazepose_heavy": 0.0309677419,
+      "movenet_thunder": 0.0084134615,
+      "rtmpose_m": 0.0048076923
+    }
+  }
+}

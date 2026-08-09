@@ -1,0 +1,420 @@
+{
+  "detection failure rate": {
+    "100-200px|blazepose_full": {
+      "front": 0.13636363636363635,
+      "rear": 0.297979797979798,
+      "n_front": 308,
+      "n_rear": 198
+    },
+    "100-200px|blazepose_heavy": {
+      "front": 0.13961038961038963,
+      "rear": 0.29292929292929293,
+      "n_front": 308,
+      "n_rear": 198
+    },
+    "100-200px|movenet_thunder": {
+      "front": 0.0,
+      "rear": 0.0,
+      "n_front": 308,
+      "n_rear": 198
+    },
+    "100-200px|rtmpose_m": {
+      "front": 0.0,
+      "rear": 0.0,
+      "n_front": 308,
+      "n_rear": 198
+    },
+    "200-300px|blazepose_full": {
+      "front": 0.05031446540880502,
+      "rear": 0.3157894736842105,
+      "n_front": 159,
+      "n_rear": 57
+    },
+    "200-300px|blazepose_heavy": {
+      "front": 0.04402515723270439,
+      "rear": 0.29824561403508776,
+      "n_front": 159,
+      "n_rear": 57
+    },
+    "200-300px|movenet_thunder": {
+      "front": 0.0,
+      "rear": 0.0,
+      "n_front": 159,
+      "n_rear": 57
+    },
+    "200-300px|rtmpose_m": {
+      "front": 0.0,
+      "rear": 0.0,
+      "n_front": 159,
+      "n_rear": 57
+    },
+    ">300px|blazepose_full": {
+      "front": 0.03264094955489616,
+      "rear": 0.23684210526315785,
+      "n_front": 337,
+      "n_rear": 38
+    },
+    ">300px|blazepose_heavy": {
+      "front": 0.020771513353115778,
+      "rear": 0.23684210526315785,
+      "n_front": 337,
+      "n_rear": 38
+    },
+    ">300px|movenet_thunder": {
+      "front": 0.0,
+      "rear": 0.0,
+      "n_front": 337,
+      "n_rear": 38
+    },
+    ">300px|rtmpose_m": {
+      "front": 0.0,
+      "rear": 0.0,
+      "n_front": 337,
+      "n_rear": 38
+    }
+  },
+  "chirality swap rate": {
+    "100-200px|blazepose_full": {
+      "front": 0.05263157894736842,
+      "rear": 0.1510791366906475,
+      "n_front": 266,
+      "n_rear": 139
+    },
+    "100-200px|blazepose_heavy": {
+      "front": 0.033962264150943396,
+      "rear": 0.14285714285714285,
+      "n_front": 265,
+      "n_rear": 140
+    },
+    "100-200px|movenet_thunder": {
+      "front": 0.012987012987012988,
+      "rear": 0.08080808080808081,
+      "n_front": 308,
+      "n_rear": 198
+    },
+    "100-200px|rtmpose_m": {
+      "front": 0.006493506493506494,
+      "rear": 0.015151515151515152,
+      "n_front": 308,
+      "n_rear": 198
+    },
+    "200-300px|blazepose_full": {
+      "front": 0.026490066225165563,
+      "rear": 0.1282051282051282,
+      "n_front": 151,
+      "n_rear": 39
+    },
+    "200-300px|blazepose_heavy": {
+      "front": 0.02631578947368421,
+      "rear": 0.1,
+      "n_front": 152,
+      "n_rear": 40
+    },
+    "200-300px|movenet_thunder": {
+      "front": 0.006289308176100629,
+      "rear": 0.08771929824561403,
+      "n_front": 159,
+      "n_rear": 57
+    },
+    "200-300px|rtmpose_m": {
+      "front": 0.0,
+      "rear": 0.0,
+      "n_front": 159,
+      "n_rear": 57
+    },
+    ">300px|blazepose_full": {
+      "front": 0.024539877300613498,
+      "rear": 0.2413793103448276,
+      "n_front": 326,
+      "n_rear": 29
+    },
+    ">300px|blazepose_heavy": {
+      "front": 0.021212121212121213,
+      "rear": 0.20689655172413793,
+      "n_front": 330,
+      "n_rear": 29
+    },
+    ">300px|movenet_thunder": {
+      "front": 0.0,
+      "rear": 0.0,
+      "n_front": 337,
+      "n_rear": 38
+    },
+    ">300px|rtmpose_m": {
+      "front": 0.002967359050445104,
+      "rear": 0.0,
+      "n_front": 337,
+      "n_rear": 38
+    }
+  },
+  "OKS (chirality-corrected)": {
+    "100-200px|blazepose_full": {
+      "front": 0.6774719812030074,
+      "rear": 0.6586243597122302,
+      "n_front": 266,
+      "n_rear": 139
+    },
+    "100-200px|blazepose_heavy": {
+      "front": 0.7043786603773584,
+      "rear": 0.6739370714285714,
+      "n_front": 265,
+      "n_rear": 140
+    },
+    "100-200px|movenet_thunder": {
+      "front": 0.8800923311688312,
+      "rear": 0.8212340353535355,
+      "n_front": 308,
+      "n_rear": 198
+    },
+    "100-200px|rtmpose_m": {
+      "front": 0.940448831168831,
+      "rear": 0.9321135858585858,
+      "n_front": 308,
+      "n_rear": 198
+    },
+    "200-300px|blazepose_full": {
+      "front": 0.7439390264900662,
+      "rear": 0.7434782307692308,
+      "n_front": 151,
+      "n_rear": 39
+    },
+    "200-300px|blazepose_heavy": {
+      "front": 0.7816491052631579,
+      "rear": 0.739596425,
+      "n_front": 152,
+      "n_rear": 40
+    },
+    "200-300px|movenet_thunder": {
+      "front": 0.9182841698113208,
+      "rear": 0.8319375789473683,
+      "n_front": 159,
+      "n_rear": 57
+    },
+    "200-300px|rtmpose_m": {
+      "front": 0.9578546415094338,
+      "rear": 0.9351875438596491,
+      "n_front": 159,
+      "n_rear": 57
+    },
+    ">300px|blazepose_full": {
+      "front": 0.8190586503067483,
+      "rear": 0.6564136206896549,
+      "n_front": 326,
+      "n_rear": 29
+    },
+    ">300px|blazepose_heavy": {
+      "front": 0.8333460242424242,
+      "rear": 0.6991176551724139,
+      "n_front": 330,
+      "n_rear": 29
+    },
+    ">300px|movenet_thunder": {
+      "front": 0.9336933738872404,
+      "rear": 0.8901531842105262,
+      "n_front": 337,
+      "n_rear": 38
+    },
+    ">300px|rtmpose_m": {
+      "front": 0.9598684688427299,
+      "rear": 0.9402585263157893,
+      "n_front": 337,
+      "n_rear": 38
+    }
+  },
+  "usable_capture_rate": {
+    "blazepose_full": {
+      "front": 0.8917910447761194,
+      "rear": 0.5938566552901023,
+      "n_front": 804,
+      "n_rear": 293
+    },
+    "blazepose_heavy": {
+      "front": 0.904228855721393,
+      "rear": 0.6109215017064846,
+      "n_front": 804,
+      "n_rear": 293
+    },
+    "movenet_thunder": {
+      "front": 0.9937810945273632,
+      "rear": 0.9283276450511946,
+      "n_front": 804,
+      "n_rear": 293
+    },
+    "rtmpose_m": {
+      "front": 0.996268656716418,
+      "rear": 0.9897610921501706,
+      "n_front": 804,
+      "n_rear": 293
+    }
+  },
+  "heuristic_vs_swap": {
+    "blazepose_full": {
+      "agreement": 0.9283687943262411,
+      "recall": 0.5789473684210527,
+      "false_alarm": 0.44537815126050423,
+      "n": 1410
+    },
+    "blazepose_heavy": {
+      "agreement": 0.9446002805049089,
+      "recall": 0.63,
+      "false_alarm": 0.4,
+      "n": 1426
+    },
+    "movenet_thunder": {
+      "agreement": 0.9522388059701492,
+      "recall": 0.7142857142857143,
+      "false_alarm": 0.5794392523364486,
+      "n": 1675
+    },
+    "rtmpose_m": {
+      "agreement": 0.9707462686567164,
+      "recall": 0.6666666666666666,
+      "false_alarm": 0.75,
+      "n": 1675
+    }
+  },
+  "conf_auc_rear": {
+    "blazepose_full": {
+      "auc_conf_mean": 0.5701786365293474,
+      "auc_conf_nose": 0.6551221290557784,
+      "n_swapped": 39,
+      "n_correct": 211
+    },
+    "blazepose_heavy": {
+      "auc_conf_mean": 0.5637447823494335,
+      "auc_conf_nose": 0.5275491949910555,
+      "n_swapped": 39,
+      "n_correct": 215
+    },
+    "movenet_thunder": {
+      "auc_conf_mean": 0.7586268549973181,
+      "auc_conf_nose": 0.4864115859109601,
+      "n_swapped": 34,
+      "n_correct": 329
+    },
+    "rtmpose_m": {
+      "auc_conf_mean": 0.7556179775280899,
+      "auc_conf_nose": 0.6424558587479936,
+      "n_swapped": 7,
+      "n_correct": 356
+    }
+  },
+  "chirality_coherence": {
+    "blazepose_full|FRONT": {
+      "n": 498,
+      "all_agree": 0.8895582329317269,
+      "all_swapped": 0.008032128514056224,
+      "mixed": 0.11044176706827313
+    },
+    "blazepose_full|REAR": {
+      "n": 121,
+      "all_agree": 0.8429752066115702,
+      "all_swapped": 0.0743801652892562,
+      "mixed": 0.15702479338842978
+    },
+    "blazepose_heavy|FRONT": {
+      "n": 503,
+      "all_agree": 0.8966202783300199,
+      "all_swapped": 0.003976143141153081,
+      "mixed": 0.1033797216699801
+    },
+    "blazepose_heavy|REAR": {
+      "n": 121,
+      "all_agree": 0.8099173553719008,
+      "all_swapped": 0.03305785123966942,
+      "mixed": 0.1900826446280992
+    },
+    "movenet_thunder|FRONT": {
+      "n": 538,
+      "all_agree": 0.9591078066914498,
+      "all_swapped": 0.0037174721189591076,
+      "mixed": 0.040892193308550207
+    },
+    "movenet_thunder|REAR": {
+      "n": 154,
+      "all_agree": 0.8961038961038961,
+      "all_swapped": 0.01948051948051948,
+      "mixed": 0.10389610389610393
+    },
+    "rtmpose_m|FRONT": {
+      "n": 538,
+      "all_agree": 0.9739776951672863,
+      "all_swapped": 0.0,
+      "mixed": 0.026022304832713727
+    },
+    "rtmpose_m|REAR": {
+      "n": 154,
+      "all_agree": 0.974025974025974,
+      "all_swapped": 0.006493506493506494,
+      "mixed": 0.025974025974025983
+    }
+  },
+  "per_group_swap_rear": {
+    "blazepose_full": {
+      "shoulders": 0.15458937198067632,
+      "hips": 0.1642512077294686,
+      "arms": 0.12949640287769784,
+      "legs": 0.17613636363636365
+    },
+    "blazepose_heavy": {
+      "shoulders": 0.14832535885167464,
+      "hips": 0.15311004784688995,
+      "arms": 0.11510791366906475,
+      "legs": 0.13559322033898305
+    },
+    "movenet_thunder": {
+      "shoulders": 0.08532423208191127,
+      "hips": 0.07508532423208192,
+      "arms": 0.04891304347826087,
+      "legs": 0.0995850622406639
+    },
+    "rtmpose_m": {
+      "shoulders": 0.027303754266211604,
+      "hips": 0.020477815699658702,
+      "arms": 0.010869565217391304,
+      "legs": 0.024896265560165973
+    }
+  },
+  "rear_swap_ztests": {
+    "blazepose_heavy_vs_movenet_thunder": {
+      "p1": 0.14354066985645933,
+      "p2": 0.07167235494880546,
+      "z": 2.6273801526933775,
+      "p_value": 0.008604514620057735,
+      "k1": 30,
+      "n1": 209,
+      "k2": 21,
+      "n2": 293
+    },
+    "blazepose_full_vs_movenet_thunder": {
+      "p1": 0.15942028985507245,
+      "p2": 0.07167235494880546,
+      "z": 3.1136986631584964,
+      "p_value": 0.0018475808046229947,
+      "k1": 33,
+      "n1": 207,
+      "k2": 21,
+      "n2": 293
+    },
+    "movenet_thunder_vs_rtmpose_m": {
+      "p1": 0.07167235494880546,
+      "p2": 0.010238907849829351,
+      "z": 3.751867862214235,
+      "p_value": 0.00017552197326109464,
+      "k1": 21,
+      "n1": 293,
+      "k2": 3,
+      "n2": 293
+    },
+    "blazepose_heavy_vs_rtmpose_m": {
+      "p1": 0.14354066985645933,
+      "p2": 0.010238907849829351,
+      "z": 5.940887255601489,
+      "p_value": 2.8348354774720974e-09,
+      "k1": 30,
+      "n1": 209,
+      "k2": 3,
+      "n2": 293
+    }
+  }
+}

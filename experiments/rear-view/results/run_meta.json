@@ -1,0 +1,15 @@
+{
+  "dataset": "COCO val2017 person keypoints",
+  "mebow_status": "access-gated (email request, educational address); fallback used",
+  "cohort_size": 1675,
+  "crop_pad": 1.25,
+  "decisive_margin": 0.05,
+  "engines": [
+    "blazepose_heavy",
+    "blazepose_full",
+    "movenet_thunder",
+    "rtmpose_m"
+  ],
+  "mode": "IMAGE / static single-image inference only",
+  "seconds": 280.5
+}

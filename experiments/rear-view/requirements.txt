@@ -1,0 +1,9 @@
+# PROTOTYPE - throwaway. Pinned to what actually produced results/.
+# Python 3.12.3, Linux, CPU only (no GPU needed - the whole sweep is ~5 min).
+mediapipe==1.0.0
+ai-edge-litert==2.1.6
+rtmlib==0.0.16
+onnxruntime==1.28.0
+numpy==2.5.1
+pandas==3.0.5
+kagglehub==1.0.2

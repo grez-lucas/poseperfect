@@ -1,0 +1,5 @@
+# The venv and the ~1 GB of COCO images are rebuilt by run.sh, never committed.
+# results/ IS committed - the whole point is that the numbers can be
+# re-checked without re-running the sweep.
+.venv/
+__pycache__/
