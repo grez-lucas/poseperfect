@@ -168,6 +168,13 @@ def main():
     ap.add_argument("--limit", type=int, default=0, help="0 = whole cohort")
     ap.add_argument("--detectors",
                     default="rtmdet_ins_tiny,rtmdet_ins_s,rtmdet_nano_person")
+    # The sweep is CPU-bound and embarrassingly parallel over instances, so it
+    # is shardable. run.sh runs the shards concurrently and concatenates them.
+    # Consequence, stated because it matters: det_latency_ms from a sharded run
+    # is contended wall clock, not a clean timing. Cost claims come from
+    # bench_onnx.py, which runs alone.
+    ap.add_argument("--shard", type=int, default=0)
+    ap.add_argument("--nshards", type=int, default=1)
     args = ap.parse_args()
 
     os.makedirs(args.out, exist_ok=True)
@@ -183,7 +190,10 @@ def main():
                 per[i.orientation] += 1
                 keep.append(i)
         cohort = keep
-    print(f"cohort: {len(cohort)} instances", flush=True)
+    if args.nshards > 1:
+        cohort = [c for i, c in enumerate(cohort) if i % args.nshards == args.shard]
+    print(f"cohort: {len(cohort)} instances "
+          f"(shard {args.shard}/{args.nshards})", flush=True)
 
     print("decoding ground-truth instance masks", flush=True)
     gt_masks = gt_masks_by_ann(ann, {i.ann_id for i in cohort})
@@ -207,7 +217,8 @@ def main():
         "pose_n_chir", "pose_pred_shoulder_sign", "pose_conf_mean",
     ]
 
-    path = os.path.join(args.out, "per_instance.csv")
+    suffix = "" if args.nshards == 1 else f".shard{args.shard}"
+    path = os.path.join(args.out, f"per_instance{suffix}.csv")
     t0 = time.time()
     n = 0
     det_ms = {d.name: [] for d in dets}
@@ -298,7 +309,7 @@ def main():
         "hardware": "CPU only, Linux, Python 3.10",
         "seconds": round(time.time() - t0, 1),
     }
-    with open(os.path.join(args.out, "run_meta.json"), "w") as f:
+    with open(os.path.join(args.out, f"run_meta{suffix}.json"), "w") as f:
         json.dump(meta, f, indent=2)
     print(json.dumps(meta, indent=2))
 

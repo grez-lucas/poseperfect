@@ -27,8 +27,11 @@ fi
 "${HERE}/bootstrap_mmdet.sh"
 "${HERE}/fetch_weights.sh"
 
-echo "==> sweep (IMAGE mode only, CPU, ~90 min)"
-"${PY}" "${HERE}/run_experiment.py"
+echo "==> sweep (IMAGE mode only, CPU, ~25 min over 5 shards)"
+"${HERE}/sweep.sh" 5 4
+
+echo "==> unconstrained-input control (whole source image, not the crop)"
+"${PY}" "${HERE}/run_fullimage.py"
 
 echo "==> analysis"
 "${PY}" "${HERE}/analyse.py"

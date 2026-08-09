@@ -53,6 +53,8 @@ Objects365 and Objects365 is academic-use-only. See the writeup.
 | `fetch_weights.sh` | official OpenMMLab checkpoints, with SHA256s printed |
 | `detectors.py` | one adapter per detector, returning every person detection with no score threshold |
 | `run_experiment.py` | the sweep |
+| `sweep.sh` | runs the sweep as concurrent shards and concatenates them |
+| `run_fullimage.py` | the harder control - the whole source image instead of the crop |
 | `analyse.py` | tables, Wilson intervals, two-proportion z-tests |
 | `export_onnx.sh` | RTMDet-Ins to ONNX via MMDeploy's own deploy config for this model |
 | `bench_onnx.py` | exported graph sizes and ONNX Runtime CPU latency |

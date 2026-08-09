@@ -113,6 +113,18 @@ One upstream defect had to be worked around, and it is recorded in the script ra
 
 **So the shippable pair is roughly 75 MiB of fp32 weights** (RTMDet-Ins-tiny plus the RTMPose-m the map has already chosen), of which two thirds is the pose model that was already committed. Adding segmentation costs **22.9 MiB**, not a second model.
 
+**Both graphs are stock ONNX and will load in any ORT build.** Read out of the exported files with `onnx`:
+
+| | RTMDet-Ins-tiny | RTMPose-m |
+|---|---|---|
+| opset | `ai.onnx` 11 | `ai.onnx` 11 |
+| operator domains | `''` only | `''` only |
+| custom / contrib ops | none | none |
+| input | `input` `[1, 3, 640, 640]` | `input` `[batch, 3, 256, 192]` |
+| outputs | `dets [1, N, 5]`, `labels [1, N]`, `masks [N, 640, 640]` | `simcc_x`, `simcc_y` |
+
+The detector graph is **end to end**: NMS is inside the graph (a single standard `NonMaxSuppression` node) and the masks come out at full 640x640 resolution already, so the Dart side thresholds a mask and does no decoding. That matters because `flutter_onnxruntime` is a thin binding - anything not expressible as an ORT graph would have to be reimplemented in Dart.
+
 Runtime, from the CocoaPods specs, which are the authoritative source:
 
 | | |
@@ -121,14 +133,39 @@ Runtime, from the CocoaPods specs, which are the authoritative source:
 | iOS deployment target | `s.platform = :ios, '16.0'` in the plugin's podspec; ONNX Runtime itself declares `"ios": "15.1"`. The **iOS 16 floor is the plugin's**, and it matches the map's constraint. |
 | ORT pod | `s.dependency 'onnxruntime-objc', '1.23.0'` |
 | ORT licence | MIT (`onnxruntime-c` and `onnxruntime-objc` podspecs both `"license": {"type": "MIT"}`) |
-| ORT device slice | `onnxruntime.xcframework/ios-arm64/onnxruntime.framework/onnxruntime`, **38,398,152 bytes**, `"static_framework": true` |
+| ORT pod archive | `pod-archive-onnxruntime-c-1.23.0.zip`, 49,207,123 bytes |
+| ORT device slice | `onnxruntime.xcframework/ios-arm64/onnxruntime.framework/onnxruntime`, **38,398,152 bytes** (36.6 MiB) |
 
-**Do not quote 36.6 MiB as IPA growth.** The framework is static, so the linker strips what the app does not call. The honest statement is: the runtime contributes some fraction of a 36.6 MiB static archive that cannot be determined without an actual iOS link, and the models contribute 75 MiB that is not compressible by dead-stripping. **Not established:** the real linked size. Section 9.
+The podspec was fetched from the CocoaPods CDN and the pod archive downloaded and unpacked rather than taken on trust. `onnxruntime-c` 1.23.0 declares `"license": {"type": "MIT"}`, `"platforms": {"ios": "15.1", "osx": "13.4"}`, `"static_framework": true` and `"weak_frameworks": ["CoreML"]`. `file` on the device slice reports *"Mach-O universal binary with 1 architecture: [arm64: current ar archive random library]"* - it is genuinely a static archive, not a dylib.
 
-**Entitlements: none required.** Neither the `onnxruntime-c` nor the `onnxruntime-objc` podspec declares an entitlement, and `onnxruntime-c` weak-links `CoreML`, which is not an entitlement-gated framework. This clears the free-provisioning constraint from [#2](https://github.com/grez-lucas/poseperfect/issues/2), which established that camera and photo library are also not entitlements.
+**Do not quote 36.6 MiB as IPA growth.** Because the framework is static, the linker keeps only what the app references. The honest statement is: the runtime contributes an undetermined fraction of a 36.6 MiB static archive, and the models contribute ~75 MiB that dead-stripping cannot touch. **The real linked size cannot be established from Linux** - it needs an actual iOS link, which needs the `ios-builder` pipeline. It is in section 11.
 
-**One adjacent hazard, and it does not bite on our delivery path.** ONNX Runtime 1.23.0's pods ship **no `PrivacyInfo.xcprivacy`**, and Apple's required-reason API check has flagged ORT for `NSPrivacyAccessedAPICategorySystemBootTime` ([microsoft/onnxruntime#20519](https://github.com/microsoft/onnxruntime/issues/20519), closed as not planned). `flutter_onnxruntime` ships its own privacy manifest (`s.resource_bundles = {'flutter_onnxruntime_privacy' => [...PrivacyInfo.xcprivacy]}`) but that declares the plugin's usage, not ORT's. **Privacy manifests are an App Store submission check.** Map decision 1 makes this a personal, side-loaded tool, so it does not gate this effort - but it would gate a future App Store release, and it belongs on the record now.
+**Entitlements: none required.** Neither `onnxruntime-c` nor `onnxruntime-objc` declares an entitlement, and the only framework `onnxruntime-c` pulls in is a weak link against `CoreML`, which is not entitlement-gated. This clears the free-provisioning constraint from [#2](https://github.com/grez-lucas/poseperfect/issues/2), which established that camera and photo library are not entitlements either.
+
+**One adjacent hazard, and it does not bite on our delivery path.** Unpacking the pod confirms it contains **no `PrivacyInfo.xcprivacy` anywhere**, and Apple's required-reason API check has flagged ORT for `NSPrivacyAccessedAPICategorySystemBootTime` ([microsoft/onnxruntime#20519](https://github.com/microsoft/onnxruntime/issues/20519)). `flutter_onnxruntime` ships its own privacy manifest (`s.resource_bundles = {'flutter_onnxruntime_privacy' => [...PrivacyInfo.xcprivacy]}`), but that declares the plugin's usage, not ORT's. **Privacy manifests are an App Store submission check.** Map decision 1 makes this a personal, side-loaded tool, so it does not gate this effort - but it would gate a future App Store release, and it belongs on the record now.
 
 ### 3.3 Latency
 
-*(measured after the sweep - see section 6)*
+*(filled in after the sweep)*
+
+---
+
+## 5. Also establish - does RTMPose ship or recommend a paired detector, and under what licence?
+
+**VERIFIED. It recommends three, and every single one is trained on a dataset whose publisher restricts it to non-commercial or academic use.**
+
+RTMPose ships no detector in its own weights, but MMPose's RTMPose project README publishes explicit detector-plus-pose pairings with download links. Read straight off [`projects/rtmpose/README.md`](https://raw.githubusercontent.com/open-mmlab/mmpose/main/projects/rtmpose/README.md):
+
+| What MMPose pairs with RTMPose | Checkpoint | Training data | Dataset terms |
+|---|---|---|---|
+| **RTMDet-nano** (with RTMPose-t/s/**m**/l) | `rtmdet_nano_8xb32-100e_coco-obj365-person-05d8511e.pth` | COCO + **Objects365** | *"available for the academic purpose only"* |
+| **RTMDet-m** (with RTMPose-m/l) | `rtmdet_m_8xb32-100e_coco-obj365-person-235e8209.pth` | COCO + **Objects365** | same |
+| **RTMDet-tiny/s, YOLOX-nano..x** (Human-Art section) | `..._humanart-*.pth` | **Human-Art** | *"request authorization to use Human-Art for non-commercial purposes"* |
+
+Sources: [Objects365 download page](https://www.objects365.org/download.html); [Human-Art README](https://raw.githubusercontent.com/IDEA-Research/HumanArt/main/README.md) - *"Under the CC-license, Human-Art is available for download. Fill out this form to request authorization to use Human-Art for non-commercial purposes."*
+
+**And the community wrapper inherits the same problem.** `rtmlib`, the reference Python wrapper used by ticket #18's harness and by most RTMPose deployments, defaults its `Body` solution to `yolox_m_8xb8-300e_humanart-c2c7a14a.zip` - a Human-Art-trained YOLOX. Anyone who follows the obvious path from RTMPose's documentation to a working pipeline ends up with a non-commercially-licensed detector without ever being told.
+
+**So the answer to the ticket's question is: yes, RTMPose recommends a paired detector, and no, none of the recommended pairings is licence-clean for a closed-source product.** The licence-clean option is a sibling model in the same Apache-2.0 codebase that MMPose does not point at: RTMDet-Ins, trained on COCO alone. That is a real finding, and it is the opposite of what "just use what upstream recommends" would have produced.
+
+**Adjacent, and it belongs on the record because [#16](https://github.com/grez-lucas/poseperfect/issues/16) made "RTMPose weight licensing must verify clean" a prerequisite.** RTMPose-m's shipped weights are the `body7` variant, and MMPose defines `body7` verbatim as *"model trained on 7 public datasets: AI Challenger, MS COCO, CrowdPose, MPII, sub-JHMDB, Halpe, PoseTrack18"*. That is seven dataset licences riding on the pose model this map has already committed to, and this ticket did not audit them. It is listed in section 11 as unfinished work, not silently assumed clean.
