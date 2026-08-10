@@ -168,4 +168,35 @@ Sources: [Objects365 download page](https://www.objects365.org/download.html); [
 
 **So the answer to the ticket's question is: yes, RTMPose recommends a paired detector, and no, none of the recommended pairings is licence-clean for a closed-source product.** The licence-clean option is a sibling model in the same Apache-2.0 codebase that MMPose does not point at: RTMDet-Ins, trained on COCO alone. That is a real finding, and it is the opposite of what "just use what upstream recommends" would have produced.
 
-**Adjacent, and it belongs on the record because [#16](https://github.com/grez-lucas/poseperfect/issues/16) made "RTMPose weight licensing must verify clean" a prerequisite.** RTMPose-m's shipped weights are the `body7` variant, and MMPose defines `body7` verbatim as *"model trained on 7 public datasets: AI Challenger, MS COCO, CrowdPose, MPII, sub-JHMDB, Halpe, PoseTrack18"*. That is seven dataset licences riding on the pose model this map has already committed to, and this ticket did not audit them. It is listed in section 11 as unfinished work, not silently assumed clean.
+---
+
+## 6. The finding this ticket did not go looking for: RTMPose-m's own weights carry a "commercial use is not allowed" dataset
+
+**VERIFIED, from the dataset owner's own download page. This lands on [#16](https://github.com/grez-lucas/poseperfect/issues/16)'s engine choice, not on this ticket's detector choice, and it is the most consequential thing in this document.**
+
+[#16](https://github.com/grez-lucas/poseperfect/issues/16) chose RTMPose-m and recorded a prerequisite: *"RTMPose weight licensing must verify clean."* Auditing the detector meant auditing the same layer for the pose model, and the pose model does not come out clean.
+
+The weights the map committed to are `rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504`. MMPose defines `body7` verbatim in [`projects/rtmpose/README.md`](https://raw.githubusercontent.com/open-mmlab/mmpose/main/projects/rtmpose/README.md):
+
+> "`*` denotes model trained on 7 public datasets: AI Challenger, MS COCO, CrowdPose, **MPII**, sub-JHMDB, Halpe, PoseTrack18"
+
+And MPII's [download page](https://www.mpi-inf.mpg.de/departments/computer-vision-and-machine-learning/software-and-datasets/mpii-human-pose-dataset/download) says, verbatim:
+
+> "MPII Human Pose Dataset, Version 1.0
+> Copyright 2015 Max Planck Institute for Informatics
+> Licensed under the Simplified BSD License [see bsd.txt]
+> We are making the annotations and the corresponding code freely available for research purposes. **Commercial use is not allowed** due to the fact that the authors do not have the copyright for the images themselves."
+
+**Which checkpoints this affects:** every RTMPose checkpoint whose name contains `body7` or `body8`, at every size, including the exact ONNX bundle this map plans to ship and the exact model ticket #18 measured. It does **not** affect the RTMDet-Ins detector recommended by this ticket, which trains on COCO alone.
+
+**Now the limits of the claim, stated so this is not inflated.**
+
+1. **The restriction is written over the dataset, not over models trained on it.** MPII restricts "the annotations and the corresponding code", and gives its reason plainly: the authors do not own the images. It says nothing explicit about model weights. Whether a dataset's use restriction reaches a model trained on it is genuinely unsettled, and this note is not the place to settle it.
+2. **It is not a copyleft trap.** Nothing here obliges source disclosure. The exposure is a use restriction, not a licence-compatibility problem, so it does not interact with the closed-source requirement at all.
+3. **On the map's current terms it is very likely moot.** Map decision 1 makes PosePerfect a **personal tool**, not distributed and not sold. Personal, non-commercial use sits inside what MPII permits. The exposure appears only if decision 1 is ever revisited and the app is sold or monetised - which decision 1 explicitly says the architecture should not have to be rewritten for.
+4. **It is not unique to RTMPose.** Objects365 and Human-Art carry comparable restrictions (section 5), and this class of inheritance is endemic to the whole field.
+5. **Three of the seven `body7` datasets are unaudited.** AI Challenger's terms could not be established at all: its host, `challenger.ai`, is defunct, and the surviving [GitHub repository](https://github.com/AIChallenger/AI_Challenger_2017) has no LICENSE file. CrowdPose, sub-JHMDB, Halpe and PoseTrack18 were not checked. See section 11.
+
+**What this means procedurally.** It does not reverse #16, and this ticket has no standing to. What it does is falsify #16's stated prerequisite as written: RTMPose-m's weight licensing is **not** clean, on one of seven training datasets, in the dataset owner's own words. **That belongs in front of Lucas as an amendment to a settled decision, with the same "accept the risk or change the model" shape as section 9's detector question**, and it is flagged in the resolution comment on #19 rather than buried here.
+
+**There is no drop-in remedy inside MMPose.** The only alternative published RTMPose-m body checkpoints are the `aic-coco` variants, which swap MPII for AI Challenger, whose terms could not be established. MMPose publishes no COCO-only RTMPose-m checkpoint. Retraining RTMPose-m on COCO alone is possible in principle and is not a research-ticket-sized job.

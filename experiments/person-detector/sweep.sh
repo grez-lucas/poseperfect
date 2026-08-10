@@ -16,7 +16,8 @@ N="${1:-5}"
 THREADS="${2:-4}"
 
 mkdir -p "${RES}"
-rm -f "${RES}"/per_instance.shard*.csv "${RES}"/run_meta.shard*.json
+# Shard CSVs are NOT deleted: run_experiment.py resumes from them.
+rm -f "${RES}"/run_meta.shard*.json
 
 pids=()
 for i in $(seq 0 $((N - 1))); do

@@ -219,13 +219,36 @@ def main():
 
     suffix = "" if args.nshards == 1 else f".shard{args.shard}"
     path = os.path.join(args.out, f"per_instance{suffix}.csv")
+
+    # Resume. An instance counts as done only if it has the full complement of
+    # rows (one gt_box baseline plus one per detector); a half-written trailing
+    # instance is dropped and recomputed. The file is rewritten with only the
+    # complete instances, then appended to.
+    done = set()
+    if os.path.exists(path):
+        expected = 1 + len(dets)
+        with open(path, newline="") as f:
+            old = list(csv.DictReader(f))
+        counts = {}
+        for r in old:
+            counts[r["ann_id"]] = counts.get(r["ann_id"], 0) + 1
+        done = {int(a) for a, c in counts.items() if c == expected}
+        with open(path, "w", newline="") as f:
+            wr = csv.DictWriter(f, fieldnames=fields)
+            wr.writeheader()
+            wr.writerows([r for r in old if int(r["ann_id"]) in done])
+        print(f"resuming: {len(done)} instances already complete", flush=True)
+
     t0 = time.time()
     n = 0
     det_ms = {d.name: [] for d in dets}
-    with open(path, "w", newline="") as f:
+    with open(path, "a" if done else "w", newline="") as f:
         wr = csv.DictWriter(f, fieldnames=fields)
-        wr.writeheader()
+        if not done:
+            wr.writeheader()
         for inst in cohort:
+            if inst.ann_id in done:
+                continue
             img = cv2.imread(os.path.join(imdir, inst.file_name))
             if img is None:
                 continue
