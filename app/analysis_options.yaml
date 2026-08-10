@@ -1,0 +1,8 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    # Issue #6 makes the inward dependency rule lint-mechanical rather than
+    # link-mechanical: a package may only import what its own pubspec declares.
+    # An error, not a warning, so CI fails on it.
+    depend_on_referenced_packages: error

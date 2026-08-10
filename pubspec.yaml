@@ -1,0 +1,15 @@
+name: poseperfect_workspace
+description: Pub workspace root for PosePerfect. Holds no code of its own.
+publish_to: none
+
+environment:
+  sdk: ^3.12.2
+
+# The layout is fixed by issue #6 "Persistence, state management and layering".
+# Dependencies point inward: app -> features -> data -> domain, and
+# packages/domain declares no dependencies at all.
+workspace:
+  - app
+  - packages/domain
+  - packages/data
+  - packages/features

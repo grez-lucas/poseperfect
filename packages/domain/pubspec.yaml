@@ -1,0 +1,17 @@
+name: poseperfect_domain
+description: The pure domain. Poses, attempts, references, scoring - no I/O, no Flutter.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.12.2
+
+# Issue #6: this package declares no dependencies at all. That is the inward
+# rule, and it is load-bearing. Nothing goes here - not Flutter, not Riverpod,
+# not drift.
+dependencies:
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6
