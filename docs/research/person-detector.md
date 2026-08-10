@@ -200,3 +200,75 @@ And MPII's [download page](https://www.mpi-inf.mpg.de/departments/computer-visio
 **What this means procedurally.** It does not reverse #16, and this ticket has no standing to. What it does is falsify #16's stated prerequisite as written: RTMPose-m's weight licensing is **not** clean, on one of seven training datasets, in the dataset owner's own words. **That belongs in front of Lucas as an amendment to a settled decision, with the same "accept the risk or change the model" shape as section 9's detector question**, and it is flagged in the resolution comment on #19 rather than buried here.
 
 **There is no drop-in remedy inside MMPose.** The only alternative published RTMPose-m body checkpoints are the `aic-coco` variants, which swap MPII for AI Challenger, whose terms could not be established. MMPose publishes no COCO-only RTMPose-m checkpoint. Retraining RTMPose-m on COCO alone is possible in principle and is not a research-ticket-sized job.
+
+---
+
+## 7. What this means for [#17](https://github.com/grez-lucas/poseperfect/issues/17)
+
+*(stated after the measurement - see the Verdict)*
+
+---
+
+## 8. The decision this leaves for Lucas
+
+Two questions here are not mine to settle, and both are of the "accept a stated risk or pay to avoid it" shape rather than the "which is better" shape.
+
+**Question A: the detector's weight-grant gap (section 1.2).** OpenMMLab publishes Apache-2.0 code and first-party checkpoints, and has never written down that the checkpoints are Apache-2.0. Options:
+
+| | Option | Cost | Residual risk |
+|---|---|---|---|
+| A1 | **Ship RTMDet-Ins from MMDetection** and accept the silence | none beyond this ticket | No express weight grant. Identical in kind to the risk already carried by RTMPose-m |
+| A2 | Ask OpenMMLab to state the checkpoint licence in writing | an issue and an unknown wait | Removes the gap if they answer |
+| A3 | Use **Segment Anything / MobileSAM** for the mask instead, the one project with an express permissive model grant | a second model, and it needs a box prompt so it does not replace the detector | Larger binary, more latency, more moving parts |
+| A4 | Train a person detector ourselves on data we can point at | far outside this effort | none |
+
+**Question B: MPII inside RTMPose-m's `body7` weights (section 6).** Options:
+
+| | Option | Cost | Residual risk |
+|---|---|---|---|
+| B1 | **Accept it under map decision 1**, recording that the app is a personal tool and MPII permits that | none | Re-opens the moment the app is ever sold |
+| B2 | Switch to an `aic-coco` RTMPose-m checkpoint | a re-run of #18's numbers on the new weights | AI Challenger's terms are unknown, so this may trade a known restriction for an unknown one |
+| B3 | Retrain RTMPose-m on COCO alone | a training job well outside this effort | none |
+| B4 | Change engine again | discards #16 | unknown |
+
+**My recommendation, which is a recommendation and not a decision: A1 and B1.** Both risks are use-restriction risks that map decision 1 already sits inside, neither is a copyleft or source-disclosure risk, and both are cheap to revisit later precisely because the map committed to a portable reference format. The thing that must not happen is that either is left unrecorded and rediscovered at the point of shipping.
+
+---
+
+## 9. Caveats, stated plainly
+
+1. **COCO is clothed people in everyday scenes.** The same caveat #18 carried applies without change: nobody has evaluated any of these models on heavily muscled, oiled, minimally clothed physique athletes holding extreme static poses. This experiment measures the viewpoint effect on a detector. **It does not measure our population.** For the mask specifically the direction is genuinely unclear: posing trunks against a dark backdrop could be easier than everyday clothing, or a flared lat could read as background to a model trained on ordinary body outlines.
+2. **The rear-facing label is #18's visibility-derived proxy**, about 81% pure on REAR, and ordinal rather than angular. Every headline number is also reported on the sign-confirmed subset where the proxy and the annotated shoulder order agree.
+3. **The crop is the friendliest realistic input.** A 1.25x square crop centred on the subject stands in for the product's constrained, frame-fit-gated capture (map decisions 8 and 14). Finding a person in a picture that is almost entirely one person is easy, which is exactly why the whole-image control exists.
+4. **Nothing was validated by eye.** Map constraint 2. No overlay was rendered or inspected at any point. Boxes are scored against COCO ground-truth boxes, masks against COCO ground-truth instance segmentations, keypoints against COCO ground-truth keypoints.
+5. **No score threshold was applied when recording.** Map constraint 3. Every detection is written out with its score and thresholds are swept in the analysis.
+6. **The PyTorch latency numbers in `summary.md` are contended wall clock** from a five-way sharded run and are not a clean timing. Cost claims come from `results/onnx_cost.json`, which was measured with the box otherwise idle - and even that is x86-64 Linux, not iOS.
+7. **The masks are scored against COCO polygon annotations**, which are themselves coarse. A predicted mask can be penalised for being more accurate than the ground truth. This biases the absolute mask IoU downward and is a reason to read the front-to-rear *difference* rather than the absolute level.
+
+---
+
+## 10. Not established
+
+Listed so nobody mistakes silence for a clean bill.
+
+**Licence**
+
+1. **Whether OpenMMLab's checkpoints are covered by the Apache-2.0 licence on its code.** They have never said so in writing (section 1.2). Nobody asked them; asking is option A2 in section 8.
+2. **Whether a dataset use restriction reaches a model trained on that dataset.** This is the crux of both the Objects365 finding and the MPII finding, it is unsettled generally, and a research ticket is the wrong instrument for settling it.
+3. **AI Challenger's terms.** Its host `challenger.ai` is defunct and the surviving GitHub repository has no LICENSE file. This blocks any assessment of the `aic-coco` RTMPose checkpoints, which is option B2 in section 8.
+4. **CrowdPose, sub-JHMDB, Halpe and PoseTrack18.** Four of the seven `body7` datasets were never opened. MPII was found on the first pass and the rest were not audited. **There may be a second MPII in there.**
+5. **The RTMPose-m `body7` weights' full provenance chain** beyond the dataset list. Not attempted.
+
+**iOS**
+
+6. **The real added IPA size.** ONNX Runtime's iOS pod is a 36.6 MiB static archive, so the linked contribution depends on what the app references and cannot be determined from Linux. It needs a build through the `ios-builder` pipeline from [#2](https://github.com/grez-lucas/poseperfect/issues/2). The ~75 MiB of fp32 model weights is firm; the runtime's share is not.
+7. **On-device latency.** Every latency figure here is x86-64 Linux under ONNX Runtime's CPU execution provider. No iPhone was involved, because there is no Mac and no device in this loop. **The ordering between models is meaningful; the absolute numbers are not the device numbers.**
+8. **Whether the CoreML execution provider helps or works.** `onnxruntime-c` weak-links CoreML, and `flutter_onnxruntime` exposes execution-provider configuration, but neither was exercised. RTMDet-Ins's graph contains `NonMaxSuppression` and dynamic shapes, which CoreML commonly falls back to CPU for.
+9. **fp16 or quantised variants.** MMDeploy ships an fp16 ONNX Runtime deploy config which would roughly halve the 22.9 MiB detector, and it was not exported or evaluated. No accuracy cost is known.
+
+**Measurement**
+
+10. **Anything about physique athletes.** Unchanged from #18 and still the largest gap on the map: muscularity, oil, posing trunks, stage lighting and extreme static poses are all outside COCO. This is now the second ticket to say so.
+11. **Mask quality against a mask good enough to *score* a lat spread.** This experiment measures agreement with COCO's polygon ground truth. It does not establish what silhouette fidelity a lat-spread width metric actually needs, because that metric does not exist yet. That is [#17](https://github.com/grez-lucas/poseperfect/issues/17)'s job, and this ticket only clears its precondition.
+12. **RTMDet-Ins-m and larger.** Only tiny and s were swept; the larger variants are outside a plausible mobile budget and were not measured.
+13. **Any detector outside the MMDetection family.** Once Ultralytics and Detectron2 were excluded on licence and the remainder had no express weight grant either, RTMDet-Ins was the only candidate worth the compute. YOLACT, SOLOv2, MobileSAM and PP-HumanSeg were read but never run.
