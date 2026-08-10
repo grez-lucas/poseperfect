@@ -1,6 +1,6 @@
 # Sourcing the person detector for RTMPose-m
 
-Resolution of [#19](https://github.com/grez-lucas/poseperfect/issues/19), 2026-08-09. Grading convention matches `pose-engines.md`: **VERIFIED** = measured here or read from a primary source, **INFERRED** = reasoned from measurement, **ANECDOTAL** = reported by others.
+Resolution of [#19](https://github.com/grez-lucas/poseperfect/issues/19), 2026-08-10. Grading convention matches `pose-engines.md`: **VERIFIED** = measured here or read from a primary source, **INFERRED** = reasoned from measurement, **ANECDOTAL** = reported by others.
 
 Code, raw per-instance results and the ONNX export recipe: `experiments/person-detector/`. It reuses ticket [#18](https://github.com/grez-lucas/poseperfect/issues/18)'s cohort, crop construction and chirality test verbatim, so every number here sits on the same 1,675 COCO val2017 instances as `rear-view-experiment.md`.
 
@@ -8,7 +8,24 @@ Code, raw per-instance results and the ONNX export recipe: `experiments/person-d
 
 ## Verdict
 
-*(written last - see the per-requirement sections below)*
+**Ship RTMDet-Ins-tiny from MMDetection, exported to ONNX with MMDeploy's own recipe. It clears all four requirements, and it is the only candidate in the field that does.**
+
+| | Requirement | Result |
+|---|---|---|
+| 1 | **Licence-clean for a closed-source app, weights included** | **Passes, with one recorded gap.** Apache-2.0 code, first-party weights from the same project, COCO-only training, no upstream copyleft owner. But OpenMMLab has never written down that its checkpoints are Apache-2.0. **Nobody in this field grants their weights except Segment Anything**, which is not a person detector. Ultralytics is confirmed AGPL over weights in its own words; Detectron2's model zoo is CC BY-SA 3.0. The gap is Lucas's to accept, section 8 |
+| 2 | **Segmentation-capable** | **Yes.** RTMDet-Ins emits a binary instance mask per detection, 35.4 mask AP for the tiny variant, and the exported graph returns masks at full 640x640 with NMS inside the graph |
+| 3 | **Rear-view competent in its own right** | **Yes, emphatically. 363 of 363 rear-facing people found. Zero no-detection failures at any orientation.** BlazePose returned nothing on 30.0% of the same crops |
+| 4 | **ONNX on iOS via `flutter_onnxruntime`** | **Yes.** Stock `ai.onnx` opset 11, no custom ops. **22.9 MiB** added weights, **~185 ms** at two threads on x86 CPU. No entitlement required, iOS 16 floor honoured. Real linked IPA size and on-device latency remain unmeasured |
+
+**The three "also establish" items:**
+
+- **Does RTMPose ship or recommend a paired detector?** Yes, three of them, and **not one is licence-clean**. RTMDet-nano-person and RTMDet-m-person are trained on Objects365 (*"available for the academic purpose only"*); the RTMDet and YOLOX Human-Art detectors, including the one `rtmlib` uses by default, are trained on Human-Art (*"non-commercial purposes"*). **Following upstream's recommendation would have produced a licensing problem.** The clean option is a sibling model in the same repository that MMPose never points at.
+- **RTMPose-m's rear swap rate with a real detector?** **1.2% (3/251) sign-confirmed, against 1.0% (3/293) on ground-truth boxes, p = 0.85.** #18's headline was not an artefact of ground-truth boxes. Positional error does not degrade either (OKS 0.936 vs 0.930 on rear).
+- **Segmentation quality on rear views?** **Holds.** Mask IoU 0.846 rear vs 0.878 front; mask *recall*, the failure mode that would clip a flared lat, 91.4% vs 93.3%; 92.8% of rear masks clear IoU 0.7 against 97.8% front.
+
+**[#17](https://github.com/grez-lucas/poseperfect/issues/17) resolves POSITIVE.** [#16](https://github.com/grez-lucas/poseperfect/issues/16) set the condition plainly: the lat spreads get silhouette scoring if a licence-clean, segmentation-capable detector exists, and stay frame-only permanently if not. One exists, it costs 22.9 MiB rather than a second model, and its masks survive the rear view. **The Back Lat Spread is the pose that had both problems at once, and the silhouette half of it is now available.** What #17 still has to do is establish what silhouette fidelity a lat-spread width metric actually needs, which this ticket deliberately did not assume.
+
+**One finding outside this ticket's scope, and it is the most consequential thing here.** Auditing the detector's training data meant auditing the pose model's, and **MPII's own download page says "Commercial use is not allowed"** - MPII is one of the seven datasets in `body7`, which is exactly the RTMPose-m checkpoint [#16](https://github.com/grez-lucas/poseperfect/issues/16) chose. That falsifies #16's stated prerequisite that RTMPose weight licensing verify clean. Scoped honestly in section 6: it is a use restriction rather than copyleft, it is written over the dataset rather than over models trained on it, and map decision 1 keeps this a personal tool where it is very likely moot. **And avoiding it is nearly free** - the `aic-coco` checkpoint drops MPII and is 0.9 AP *higher* on COCO - except that it keeps AI Challenger, whose terms could not be established at all. **That is Lucas's call, and it needs to be an explicit one rather than an omission.**
 
 ---
 
@@ -138,7 +155,7 @@ Runtime, from the CocoaPods specs, which are the authoritative source:
 
 The podspec was fetched from the CocoaPods CDN and the pod archive downloaded and unpacked rather than taken on trust. `onnxruntime-c` 1.23.0 declares `"license": {"type": "MIT"}`, `"platforms": {"ios": "15.1", "osx": "13.4"}`, `"static_framework": true` and `"weak_frameworks": ["CoreML"]`. `file` on the device slice reports *"Mach-O universal binary with 1 architecture: [arm64: current ar archive random library]"* - it is genuinely a static archive, not a dylib.
 
-**Do not quote 36.6 MiB as IPA growth.** Because the framework is static, the linker keeps only what the app references. The honest statement is: the runtime contributes an undetermined fraction of a 36.6 MiB static archive, and the models contribute ~75 MiB that dead-stripping cannot touch. **The real linked size cannot be established from Linux** - it needs an actual iOS link, which needs the `ios-builder` pipeline. It is in section 11.
+**Do not quote 36.6 MiB as IPA growth.** Because the framework is static, the linker keeps only what the app references. The honest statement is: the runtime contributes an undetermined fraction of a 36.6 MiB static archive, and the models contribute ~75 MiB that dead-stripping cannot touch. **The real linked size cannot be established from Linux** - it needs an actual iOS link, which needs the `ios-builder` pipeline. It is in section 10.
 
 **Entitlements: none required.** Neither `onnxruntime-c` nor `onnxruntime-objc` declares an entitlement, and the only framework `onnxruntime-c` pulls in is a weak link against `CoreML`, which is not entitlement-gated. This clears the free-provisioning constraint from [#2](https://github.com/grez-lucas/poseperfect/issues/2), which established that camera and photo library are not entitlements either.
 
@@ -335,17 +352,51 @@ And MPII's [download page](https://www.mpi-inf.mpg.de/departments/computer-visio
 2. **It is not a copyleft trap.** Nothing here obliges source disclosure. The exposure is a use restriction, not a licence-compatibility problem, so it does not interact with the closed-source requirement at all.
 3. **On the map's current terms it is very likely moot.** Map decision 1 makes PosePerfect a **personal tool**, not distributed and not sold. Personal, non-commercial use sits inside what MPII permits. The exposure appears only if decision 1 is ever revisited and the app is sold or monetised - which decision 1 explicitly says the architecture should not have to be rewritten for.
 4. **It is not unique to RTMPose.** Objects365 and Human-Art carry comparable restrictions (section 5), and this class of inheritance is endemic to the whole field.
-5. **Three of the seven `body7` datasets are unaudited.** AI Challenger's terms could not be established at all: its host, `challenger.ai`, is defunct, and the surviving [GitHub repository](https://github.com/AIChallenger/AI_Challenger_2017) has no LICENSE file. CrowdPose, sub-JHMDB, Halpe and PoseTrack18 were not checked. See section 11.
+5. **Three of the seven `body7` datasets are unaudited.** AI Challenger's terms could not be established at all: its host, `challenger.ai`, is defunct, and the surviving [GitHub repository](https://github.com/AIChallenger/AI_Challenger_2017) has no LICENSE file. CrowdPose, sub-JHMDB, Halpe and PoseTrack18 were not checked. See section 10.
 
-**What this means procedurally.** It does not reverse #16, and this ticket has no standing to. What it does is falsify #16's stated prerequisite as written: RTMPose-m's weight licensing is **not** clean, on one of seven training datasets, in the dataset owner's own words. **That belongs in front of Lucas as an amendment to a settled decision, with the same "accept the risk or change the model" shape as section 9's detector question**, and it is flagged in the resolution comment on #19 rather than buried here.
+**What this means procedurally.** It does not reverse #16, and this ticket has no standing to. What it does is falsify #16's stated prerequisite as written: RTMPose-m's weight licensing is **not** clean, on one of seven training datasets, in the dataset owner's own words. **That belongs in front of Lucas as an amendment to a settled decision, with the same "accept the risk or change the model" shape as section 8's detector question**, and it is flagged in the resolution comment on #19 rather than buried here.
 
-**There is no drop-in remedy inside MMPose.** The only alternative published RTMPose-m body checkpoints are the `aic-coco` variants, which swap MPII for AI Challenger, whose terms could not be established. MMPose publishes no COCO-only RTMPose-m checkpoint. Retraining RTMPose-m on COCO alone is possible in principle and is not a research-ticket-sized job.
+### 6.1 What avoiding MPII would cost
+
+**VERIFIED from the model zoo, because a blocker without a price tag is not actionable.**
+
+MMPose publishes exactly **two** 2D body training mixtures for RTMPose, and no others. The section headers in `projects/rtmpose/README.md` are `AIC+COCO` and `Body8`. **There is no COCO-only RTMPose-m checkpoint.**
+
+| | `body7` (current choice) | `aic-coco` (the alternative) |
+|---|---|---|
+| Checkpoint | `rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504` | `rtmpose-m_simcc-aic-coco_pt-aic-coco_420e-256x192-63eb25f7_20230126` |
+| Training mixture | AI Challenger, MS COCO, CrowdPose, **MPII**, sub-JHMDB, Halpe, PoseTrack18 | AI Challenger, MS COCO |
+| **AP (COCO)** | 74.9 | **75.8** |
+| PCK@0.1 (Body8) | 94.25 | 94.13 |
+| AUC (Body8) | 68.59 | 68.53 |
+| Params / FLOPs | 13.59 M / 1.93 G | 13.59 M / 1.93 G |
+| ONNX bundle published? | **yes** | **no, `.pth` only** |
+
+**The accuracy question answers itself: there is no accuracy cost.** The `aic-coco` checkpoint is **0.9 AP higher on COCO** and 0.12 PCK lower on Body8. Same architecture, same size, same speed. On the published numbers this is a wash, and if anything the MPII-free checkpoint is the better one on the benchmark that matters most for a single-person top-down pipeline.
+
+**But it does not clear the licence question, it relocates it.** `aic-coco` drops MPII and keeps AI Challenger, and **AI Challenger's terms could not be established at all**: its host `challenger.ai` is defunct, the surviving [GitHub repository](https://github.com/AIChallenger/AI_Challenger_2017) has no LICENSE file and no terms in its README, and web search was unavailable during this session. **Swapping to `aic-coco` trades a known restriction for an unknown one.** That is not obviously an improvement, and it should not be presented as one.
+
+**COCO itself is clean, and that is worth stating because it is the one dataset here that is.** From [COCO's terms of use](https://github.com/cocodataset/cocodataset.github.io/blob/master/dataset/termsofuse.htm), verbatim: *"The annotations in this dataset along with this website belong to the COCO Consortium and are licensed under a Creative Commons Attribution 4.0 License."* and *"The COCO Consortium does not own the copyright of the images. Use of the images must abide by the Flickr Terms of Use. The users of the images accept full responsibility for the use of the dataset."* **There is no academic-only clause and no non-commercial clause.** COCO carries the same Flickr-image caveat that Objects365 and MPII do, but unlike them it does not convert that caveat into a use restriction. This is exactly why the RTMDet-Ins detector recommended by this ticket, trained on COCO alone, is in a better position than the pose model it will feed.
+
+**Two costs of the swap that are real but small:** the `aic-coco` variant ships no ONNX bundle, so it would have to be converted with MMDeploy - which `experiments/person-detector/export_onnx.sh` now demonstrates is a solved problem in this repo - and #18's rear-view numbers were measured on the `body7` weights, so they would need re-running on the new ones. Both are hours, not weeks.
+
+**Not measured:** the `aic-coco` checkpoint's actual rear chirality swap rate on our cohort. The published AP is a COCO-average and says nothing about rear views specifically, which is the whole reason #18 existed. Running it is a contained job with the harness now in place, and it is listed in section 10.
 
 ---
 
 ## 7. What this means for [#17](https://github.com/grez-lucas/poseperfect/issues/17)
 
-*(stated after the measurement - see the Verdict)*
+**#17 resolves POSITIVE. The silhouette is available.**
+
+[#16](https://github.com/grez-lucas/poseperfect/issues/16) wrote the condition without ambiguity: the two lat spreads get *"framing and arm position, plus silhouette if [#19](https://github.com/grez-lucas/poseperfect/issues/19) finds a segmentation-capable detector; frame-only permanently if not"*. All three clauses of that condition are met:
+
+1. **Segmentation-capable** - RTMDet-Ins emits an instance mask (section 2).
+2. **Licence-clean on the same terms the map has already accepted elsewhere** - Apache-2.0 project, first-party weights, COCO-only training, and COCO is the one dataset in this whole document with no use restriction (sections 1 and 6.1).
+3. **Good enough on a rear view** - 92.8% of rear-view masks clear IoU 0.7, and mask recall, the failure that would clip a flared lat, drops only 1.9 points from front to rear (section 4.4).
+
+And #16's other constraint is satisfied too: the mask comes from **the detector the pipeline needed anyway**, not from a second model. The marginal cost of the silhouette over a box-only detector is zero inference passes and about 19 MiB of weights against RTMDet-nano-person.
+
+**What #17 must not inherit from this.** This ticket establishes that a mask exists and that the viewpoint does not destroy it. It does **not** establish that the mask is good enough to *score* a lat spread, because the metric that would consume it does not exist yet. A V-taper measurement may need boundary precision at the lat margin specifically, which mean IoU does not report and COCO's coarse polygon ground truth cannot validate. **#17 starts from "the input exists" and still has to prove "the input is sufficient".**
 
 ---
 
