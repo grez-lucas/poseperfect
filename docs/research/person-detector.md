@@ -146,7 +146,147 @@ The podspec was fetched from the CocoaPods CDN and the pod archive downloaded an
 
 ### 3.3 Latency
 
-*(filled in after the sweep)*
+**VERIFIED, on x86-64 Linux under ONNX Runtime 1.19.2's CPU execution provider, with the box otherwise idle. This is not an iOS measurement** - see caveat 6 and section 10. Median of 20 runs after 3 warmups, at several `intra_op_num_threads` settings because a phone gives you two useful cores, not twenty.
+
+| Graph | Size | 1 thread | 2 threads | 4 threads |
+|---|---|---|---|---|
+| RTMDet-Ins-tiny 640x640 | 22.9 MiB | 353.6 ms | **184.6 ms** | 98.7 ms |
+| RTMDet-Ins-s 640x640 | 41.2 MiB | 693.8 ms | 181.9 ms | 118.8 ms |
+| RTMPose-m 256x192 | 51.8 MiB | 57.0 ms | **31.8 ms** | 17.3 ms |
+
+**The shippable pair costs about 215 ms per capture at two threads on this hardware.** Raw numbers in `results/onnx_cost.json`.
+
+That is comfortably inside what the map needs. Map decision 7 already moved rigorous scoring off the live path and onto capture, and decision 20 says scoring must not block the session, so the budget is "a second or two in the background", not "30 fps". Even if a phone were three times slower than this desktop core, the pair stays under a second.
+
+**RTMDet-Ins-s is not worth its cost.** It is 18 MiB larger, no faster in the regime that matters, and section 4 shows it is not better on any metric the product cares about. **RTMDet-Ins-tiny is the variant to ship.**
+
+---
+
+## 4. Measured on COCO: requirement 3, and the two numbers the ticket asked for
+
+### 4.1 What was run
+
+**VERIFIED.** Full sweep, `experiments/person-detector/`, results in `results/`.
+
+| | |
+|---|---|
+| Cohort | ticket #18's 1,675-instance COCO val2017 cohort, reused verbatim |
+| Input | the same 1.25x square crop, black-padded, as #18 |
+| Mode | IMAGE / static single-image inference throughout |
+| Detectors | RTMDet-Ins-tiny, RTMDet-Ins-s (mask-emitting, COCO-only, Apache-2.0), RTMDet-nano-person (box-only, Objects365, the pairing MMPose recommends) |
+| Pose | RTMPose-m body7 ONNX, the same weights and the same rtmlib decode path as #18 |
+| Baseline | a `gt_box` row per instance, RTMPose-m on the ground-truth box, recomputed in-process |
+| Scoring | boxes against COCO ground-truth boxes, masks against COCO ground-truth instance segmentations, keypoints against COCO ground-truth keypoints |
+| Threshold | none applied at record time; swept in the analysis |
+| Cost | 6,701 rows, 935 s over five shards, CPU |
+
+**The `gt_box` baseline reproduces #18 exactly**, which is the check that the two experiments are commensurable: sign-confirmed REAR chirality swap **3/293 = 1.0%**, FRONT **3/804 = 0.4%**. Identical to the numbers in `rear-view-experiment.md`.
+
+### 4.2 Requirement 3 - is the detector rear-view competent in its own right?
+
+**VERIFIED. Yes, completely, and it is not close.**
+
+The failure that disqualified BlazePose was that its face-anchored person detector returns *nothing* on 30.0% of rear-facing subjects. Under the identical conditions:
+
+**Instances where the detector returned no person detection at all:**
+
+| orientation | RTMDet-Ins-tiny | RTMDet-Ins-s | RTMDet-nano-person | BlazePose heavy (#18) |
+|---|---|---|---|---|
+| FRONT | 0.000 | 0.000 | 0.000 | 0.069 |
+| OBLIQUE | 0.000 | 0.000 | 0.000 | - |
+| PROFILE | 0.000 | 0.000 | 0.000 | - |
+| **REAR** | **0.000** | **0.000** | **0.000** | **0.300** |
+
+**Instances where the target person was among the returned detections at IoU >= 0.5:**
+
+| orientation | RTMDet-Ins-tiny | RTMDet-Ins-s | RTMDet-nano-person |
+|---|---|---|---|
+| FRONT | 0.998 [0.991, 0.999] n=832 | 0.999 [0.993, 1.000] n=832 | 1.000 [0.995, 1.000] n=832 |
+| OBLIQUE | 0.997 [0.985, 1.000] n=384 | 0.995 [0.981, 0.999] n=384 | 1.000 [0.990, 1.000] n=384 |
+| PROFILE | 1.000 [0.962, 1.000] n=96 | 1.000 [0.962, 1.000] n=96 | 1.000 [0.962, 1.000] n=96 |
+| **REAR** | **1.000 [0.990, 1.000] n=363** | **1.000 [0.990, 1.000] n=363** | **1.000 [0.990, 1.000] n=363** |
+
+**RTMDet-Ins found every single rear-facing person in the cohort. 363 of 363.** There is no rear-view detection deficit to report, at any orientation, for any of the three detectors. The architecture hypothesis #18 confirmed holds up from the other side: it was never the viewpoint, it was the face anchor, and a general object detector does not have one.
+
+**And box quality does not degrade either.** Mean IoU of the selected box against ground truth, on hits: 0.912 FRONT and 0.896 REAR for RTMDet-Ins-tiny. A 1.6-point drop across the whole viewpoint range.
+
+**One thing this measurement is NOT saying, and it matters.** Picking the *highest-scoring* detection finds the target only 83.7% of the time on REAR, not 100%. That gap is **not** a detection failure - the target is always in the list. It is the naive selection rule choosing a different person, because the 1.25x crop pulls in neighbours and #18's cohort tolerates up to 35% overlap with another annotated person. **Selecting the subject is a product design problem** (most central, or largest, or nearest the frame-fit gate's expected box), not a detector property, and this ticket does not settle it. Everything downstream is therefore reported both ways.
+
+**Sensitivity to the score threshold**, since map constraint 3 forbids gating on confidence and the honest treatment is to show what a threshold would cost rather than to pick one. Top-1 hit rate on REAR for RTMDet-Ins-tiny: 0.837 at any score, 0.835 at s>=0.1, 0.829 at s>=0.3, 0.807 at s>=0.5, **0.689 at s>=0.7**. The answer is flat until 0.5 and then falls off a cliff. **Do not threshold above 0.3**, and there is no reason to threshold at all.
+
+### 4.3 Also establish - what does RTMPose-m's rear swap rate become with a real detector?
+
+**VERIFIED. It stays at 1%. The pose-head upper bound from #18 survives contact with a real detector.**
+
+This is the number the ticket said nobody had. Restricted to instances where the pipeline selected the right person, so it measures the cost of *a real box instead of a ground-truth box* rather than the cost of a bad selection rule:
+
+| orientation | `gt_box` (#18's condition) | RTMDet-Ins-tiny | RTMDet-Ins-s | RTMDet-nano-person |
+|---|---|---|---|---|
+| FRONT | 0.005 n=832 | 0.003 n=730 | 0.003 n=676 | 0.003 n=670 |
+| OBLIQUE | 0.026 n=384 | 0.033 n=337 | 0.034 n=328 | 0.034 n=321 |
+| PROFILE | 0.000 n=96 | 0.000 n=80 | 0.000 n=75 | 0.000 n=77 |
+| **REAR** | **0.019 n=363** | **0.020 n=304** | 0.024 n=290 | 0.021 n=283 |
+
+Sign-confirmed, which is the subset #18's verdict quoted:
+
+| orientation | `gt_box` | RTMDet-Ins-tiny | RTMDet-Ins-s | RTMDet-nano-person |
+|---|---|---|---|---|
+| FRONT | 0.004 (3/804) | 0.003 (2/706) | 0.003 (2/656) | 0.003 (2/647) |
+| **REAR** | **0.010 (3/293)** | **0.012 (3/251)** | 0.008 (2/239) | 0.017 (4/238) |
+
+Two-proportion z-tests against the ground-truth box on sign-confirmed REAR: RTMDet-Ins-tiny **p = 0.85**, RTMDet-Ins-s p = 0.82, RTMDet-nano-person p = 0.51. **No detector is distinguishable from a ground-truth box.**
+
+**Positional error, kept separate as map constraint 4 requires.** Mean OKS after chirality correction, same conditioning:
+
+| orientation | `gt_box` | RTMDet-Ins-tiny |
+|---|---|---|
+| FRONT | 0.950 | 0.954 |
+| OBLIQUE | 0.925 | 0.926 |
+| PROFILE | 0.929 | 0.930 |
+| REAR | 0.930 | **0.936** |
+
+The detector's box is, if anything, marginally *better* for RTMPose than COCO's annotated box - unsurprising, since RTMDet was trained to produce the kind of box a detector-fed pose model expects.
+
+**So the deployable figure the ticket asked for is ~1.2% rear chirality swap, and #18's 1.0% was not an artefact of ground-truth boxes.** Against BlazePose's 14.4% and MoveNet Thunder's 7.2%, on the same images.
+
+**The honest caveat, stated rather than buried.** Under a naive highest-score selection rule in a crowded crop, the same pipeline reports 5.1% rear swap and a composite usable rate of 82.1% instead of 99%. That entire gap is subject selection, not pose or detection, and it is a real engineering task the product has to do properly. The frame-fit gate (map decisions 8 and 14) exists precisely to make this a non-problem, and the 100% any-detection recall above proves a correct rule is always achievable. But **a careless implementation will throw away most of the margin RTMPose bought**, and that is worth recording as a design constraint rather than discovering later.
+
+### 4.4 Also establish - segmentation quality, and specifically on rear views
+
+**VERIFIED. The mask holds up on rear views. It is 3 points of IoU worse than front, not a collapse.**
+
+Mask IoU against the COCO ground-truth instance segmentation, on hits:
+
+| orientation | RTMDet-Ins-tiny | RTMDet-Ins-s |
+|---|---|---|
+| FRONT | 0.878 | 0.883 |
+| OBLIQUE | 0.861 | 0.868 |
+| PROFILE | 0.845 | 0.849 |
+| **REAR** | **0.846** | 0.855 |
+
+Precision and recall kept separate, because for a lat spread the damaging failure is the mask **clipping** the flared silhouette (a recall failure), while bleeding into the background costs a width measurement far less:
+
+| orientation | tiny recall | tiny precision |
+|---|---|---|
+| FRONT | 0.933 | 0.938 |
+| OBLIQUE | 0.919 | 0.932 |
+| PROFILE | 0.920 | 0.915 |
+| **REAR** | **0.914** | 0.922 |
+
+**Rear-view mask recall is 91.4% against 93.3% front. A 1.9-point drop.** The failure mode that would actually hurt a lat spread barely moves with viewpoint.
+
+Fraction of masks clearing IoU 0.7, a rough "the silhouette is usable" bar:
+
+| orientation | RTMDet-Ins-tiny | RTMDet-Ins-s |
+|---|---|---|
+| FRONT | 0.978 [0.965, 0.986] n=730 | 0.981 [0.967, 0.989] n=676 |
+| OBLIQUE | 0.947 [0.917, 0.966] n=337 | 0.960 [0.933, 0.977] n=328 |
+| PROFILE | 0.938 [0.862, 0.973] n=80 | 0.947 [0.871, 0.979] n=75 |
+| **REAR** | **0.928 [0.893, 0.952] n=304** | 0.945 [0.912, 0.966] n=290 |
+
+**92.8% of rear-view masks clear IoU 0.7 against 97.8% of front-view masks.** A back lat spread gets a usable silhouette about as often as a front one.
+
+Two things this does not establish, both in section 10: COCO's polygon ground truth is itself coarse, so the absolute level is pessimistic and the front-to-rear *difference* is the trustworthy part; and nobody has measured any of this on an oiled, muscled athlete in posing trunks, where a flared lat is exactly the structure a COCO-trained model has never been asked to outline.
 
 ---
 

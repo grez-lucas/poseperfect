@@ -74,8 +74,15 @@ def main():
                  "threads": {}}
         for th in (1, 2, 4):
             entry["threads"][str(th)] = bench(p, th)
-        report["models"][os.path.basename(p)] = entry
-        print(json.dumps({os.path.basename(p): entry}, indent=2), flush=True)
+        key = os.path.basename(os.path.dirname(p))
+        if key in ("checkpoints", "onnx") or key.startswith("checkpoints"):
+            key = os.path.basename(p)
+        if os.path.basename(p) != "end2end.onnx":
+            key = os.path.basename(p)
+        report["models"][key] = entry
+        print(key, entry["mib"], "MiB",
+              {t: entry["threads"][t]["median_ms"] for t in entry["threads"]},
+              flush=True)
 
     out = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                        "results", "onnx_cost.json")

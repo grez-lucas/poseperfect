@@ -1,0 +1,176 @@
+{
+  "note": "x86-64 Linux CPU, ONNX Runtime 1.19.2. NOT an iOS measurement.",
+  "models": {
+    "rtmdet-ins_s": {
+      "path": "/home/luken/.cache/poseperfect-detector/onnx/rtmdet-ins_s/end2end.onnx",
+      "bytes": 43237040,
+      "mib": 41.23,
+      "threads": {
+        "1": {
+          "input_shapes": {
+            "input": [
+              1,
+              3,
+              640,
+              640
+            ]
+          },
+          "output_names": [
+            "dets",
+            "labels",
+            "masks"
+          ],
+          "median_ms": 693.8,
+          "p90_ms": 1190.4
+        },
+        "2": {
+          "input_shapes": {
+            "input": [
+              1,
+              3,
+              640,
+              640
+            ]
+          },
+          "output_names": [
+            "dets",
+            "labels",
+            "masks"
+          ],
+          "median_ms": 181.9,
+          "p90_ms": 189.6
+        },
+        "4": {
+          "input_shapes": {
+            "input": [
+              1,
+              3,
+              640,
+              640
+            ]
+          },
+          "output_names": [
+            "dets",
+            "labels",
+            "masks"
+          ],
+          "median_ms": 118.8,
+          "p90_ms": 125.2
+        }
+      }
+    },
+    "rtmdet-ins_tiny": {
+      "path": "/home/luken/.cache/poseperfect-detector/onnx/rtmdet-ins_tiny/end2end.onnx",
+      "bytes": 24032420,
+      "mib": 22.92,
+      "threads": {
+        "1": {
+          "input_shapes": {
+            "input": [
+              1,
+              3,
+              640,
+              640
+            ]
+          },
+          "output_names": [
+            "dets",
+            "labels",
+            "masks"
+          ],
+          "median_ms": 353.6,
+          "p90_ms": 456.0
+        },
+        "2": {
+          "input_shapes": {
+            "input": [
+              1,
+              3,
+              640,
+              640
+            ]
+          },
+          "output_names": [
+            "dets",
+            "labels",
+            "masks"
+          ],
+          "median_ms": 184.6,
+          "p90_ms": 196.5
+        },
+        "4": {
+          "input_shapes": {
+            "input": [
+              1,
+              3,
+              640,
+              640
+            ]
+          },
+          "output_names": [
+            "dets",
+            "labels",
+            "masks"
+          ],
+          "median_ms": 98.7,
+          "p90_ms": 102.8
+        }
+      }
+    },
+    "rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504.onnx": {
+      "path": "/home/luken/.cache/rtmlib/hub/checkpoints/rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504.onnx",
+      "bytes": 54330655,
+      "mib": 51.81,
+      "threads": {
+        "1": {
+          "input_shapes": {
+            "input": [
+              "batch",
+              3,
+              256,
+              192
+            ]
+          },
+          "output_names": [
+            "simcc_x",
+            "simcc_y"
+          ],
+          "median_ms": 57.0,
+          "p90_ms": 59.2
+        },
+        "2": {
+          "input_shapes": {
+            "input": [
+              "batch",
+              3,
+              256,
+              192
+            ]
+          },
+          "output_names": [
+            "simcc_x",
+            "simcc_y"
+          ],
+          "median_ms": 31.8,
+          "p90_ms": 34.4
+        },
+        "4": {
+          "input_shapes": {
+            "input": [
+              "batch",
+              3,
+              256,
+              192
+            ]
+          },
+          "output_names": [
+            "simcc_x",
+            "simcc_y"
+          ],
+          "median_ms": 17.3,
+          "p90_ms": 17.8
+        }
+      }
+    }
+  }
+}
