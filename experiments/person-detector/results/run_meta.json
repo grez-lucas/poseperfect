@@ -1,0 +1,30 @@
+{
+  "ticket": 19,
+  "dataset": "COCO val2017 person keypoints",
+  "cohort": "reused verbatim from experiments/rear-view (ticket #18)",
+  "cohort_size": 1675,
+  "crop_pad": 1.25,
+  "mode": "IMAGE / static single-image inference only",
+  "score_threshold_applied_at_record_time": null,
+  "pose_model": "https://download.openmmlab.com/mmpose/v1/projects/rtmposev1/onnx_sdk/rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504.zip",
+  "detectors": {
+    "rtmdet_ins_tiny": {
+      "checkpoint": "rtmdet-ins_tiny_8xb32-300e_coco_20221130_151727-ec670f7e.pth",
+      "checkpoint_bytes": 22757492
+    },
+    "rtmdet_ins_s": {
+      "checkpoint": "rtmdet-ins_s_8xb32-300e_coco_20221121_212604-fdc5d7ec.pth",
+      "checkpoint_bytes": 40976121
+    },
+    "rtmdet_nano_person": {
+      "checkpoint": "rtmdet_nano_8xb32-100e_coco-obj365-person-05d8511e.pth",
+      "checkpoint_bytes": 4224050
+    }
+  },
+  "detector_latency_ms_median": {
+    "note": "contended wall clock under a sharded run, not a clean timing; see results/onnx_cost.json for cost claims"
+  },
+  "hardware": "CPU only, Linux, Python 3.10",
+  "seconds": 935.0,
+  "shards": 5
+}
