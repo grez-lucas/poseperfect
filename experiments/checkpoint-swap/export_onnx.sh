@@ -60,6 +60,7 @@ export_one() {  # tag checkpoint
 
 export_one aic-coco rtmpose-m_simcc-aic-coco_pt-aic-coco_420e-256x192-63eb25f7_20230126.pth
 export_one body7    rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504.pth
+export_one coco     rtmpose-m_simcc-coco_pt-aic-coco_420e-256x192-d8dd5ca4_20230127.pth
 
 echo "==> exported sizes"
 find "${OUT}" -name "*.onnx" -printf "%s\t%p\n" | sort -n

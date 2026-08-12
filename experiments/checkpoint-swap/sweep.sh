@@ -7,13 +7,22 @@
 # box idle. Sharding costs one thing and it is recorded rather than hidden: any
 # wall-clock timing from a sharded run is contended and is not a clean timing.
 # Cost claims come from bench_onnx.py, which runs alone.
+#
+# Usage: ./sweep.sh [nshards] [threads] [arms] [outdir]
+#
+# `arms` and `outdir` exist so a single arm can be swept separately and its
+# rows concatenated into an existing per_instance.csv. That is sound because
+# the arms are independent per instance and the detector box is deterministic
+# for a given crop, so a second pass reproduces the identical box; `analyse.py`
+# does not rely on the passes being simultaneous. See the README.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PY="${HERE}/../person-detector/.venv310/bin/python"
-RES="${HERE}/results"
 N="${1:-5}"
 THREADS="${2:-4}"
+ARMS="${3:-body7_official,body7_self,aic_coco_self,coco_self}"
+RES="${4:-${HERE}/results}"
 
 mkdir -p "${RES}"
 # Shard CSVs are NOT deleted: run_experiment.py resumes from them.
@@ -23,6 +32,7 @@ pids=()
 for i in $(seq 0 $((N - 1))); do
   OMP_NUM_THREADS="${THREADS}" MKL_NUM_THREADS="${THREADS}" \
     "${PY}" "${HERE}/run_experiment.py" --shard "${i}" --nshards "${N}" \
+    --arms "${ARMS}" --out "${RES}" \
     > "${RES}/shard${i}.log" 2>&1 &
   pids+=($!)
 done

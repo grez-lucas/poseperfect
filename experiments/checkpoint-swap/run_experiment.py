@@ -90,8 +90,17 @@ RTMPOSE_M_BODY7_OFFICIAL_ONNX = (
     "https://download.openmmlab.com/mmpose/v1/projects/rtmposev1/onnx_sdk/"
     "rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504.zip"
 )
-BODY7_PTH = "rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504.pth"
-AIC_COCO_PTH = "rtmpose-m_simcc-aic-coco_pt-aic-coco_420e-256x192-63eb25f7_20230126.pth"
+ARM_PTH = {
+    "body7_self":
+        "rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504.pth",
+    "aic_coco_self":
+        "rtmpose-m_simcc-aic-coco_pt-aic-coco_420e-256x192-63eb25f7_20230126.pth",
+    # Read the name: `simcc-coco` is the supervised pose training set,
+    # `pt-aic-coco` is the backbone pretraining. AI Challenger appears only in
+    # pretraining, not in the supervised pose data.
+    "coco_self":
+        "rtmpose-m_simcc-coco_pt-aic-coco_420e-256x192-d8dd5ca4_20230127.pth",
+}
 
 
 def sha256(path):
@@ -102,22 +111,52 @@ def sha256(path):
     return h.hexdigest()
 
 
-def build_pose_arms(onnx_dir):
-    """The three pose arms, each an rtmlib RTMPose over a different graph.
+ARM_ONNX_SUBDIR = {
+    "body7_self": "body7",
+    "aic_coco_self": "aic-coco",
+    "coco_self": "coco",
+}
+ALL_ARMS = ["body7_official", "body7_self", "aic_coco_self", "coco_self"]
 
-    rtmlib is #18's and #19's decode path. Using it for all three arms means
-    the SimCC split ratio, the top-down affine and the ImageNet normalisation
-    are identical across arms and identical to the two earlier tickets - the
-    only thing that varies is the weights.
+
+def arm_meta(arm, ckpt_dir, onnx_dir):
+    """Provenance for one arm, recorded so a number can be traced to a file.
+
+    The SHA256 is computed here rather than trusted, because the 8-hex tag in
+    an OpenMMLab filename does not always match the file currently served.
+    """
+    if arm == "body7_official":
+        return {"source": RTMPOSE_M_BODY7_OFFICIAL_ONNX}
+    pth = os.path.join(ckpt_dir, ARM_PTH[arm])
+    onnx = os.path.join(onnx_dir, ARM_ONNX_SUBDIR[arm], "end2end.onnx")
+    return {
+        "checkpoint": ARM_PTH[arm],
+        "checkpoint_sha256": sha256(pth),
+        "checkpoint_bytes": os.path.getsize(pth),
+        "onnx": onnx,
+        "onnx_bytes": os.path.getsize(onnx),
+    }
+
+
+def build_pose_arms(onnx_dir, names):
+    """The pose arms, each an rtmlib RTMPose over a different graph.
+
+    rtmlib is #18's and #19's decode path. Using it for every arm means the
+    SimCC split ratio, the top-down affine and the ImageNet normalisation are
+    identical across arms and identical to the two earlier tickets - the only
+    thing that varies is the weights.
     """
     from rtmlib import RTMPose
 
     arms = {}
-    arms["body7_official"] = RTMPose(
-        onnx_model=RTMPOSE_M_BODY7_OFFICIAL_ONNX, model_input_size=(192, 256),
-        backend="onnxruntime", device="cpu")
-    for tag, sub in (("body7_self", "body7"), ("aic_coco_self", "aic-coco")):
-        path = os.path.join(onnx_dir, sub, "end2end.onnx")
+    for tag in names:
+        if tag == "body7_official":
+            arms[tag] = RTMPose(
+                onnx_model=RTMPOSE_M_BODY7_OFFICIAL_ONNX,
+                model_input_size=(192, 256), backend="onnxruntime",
+                device="cpu")
+            continue
+        path = os.path.join(onnx_dir, ARM_ONNX_SUBDIR[tag], "end2end.onnx")
         if not os.path.exists(path):
             raise SystemExit(f"missing {path} - run ./export_onnx.sh first")
         arms[tag] = RTMPose(onnx_model=path, model_input_size=(192, 256),
@@ -136,6 +175,8 @@ def main():
     ap.add_argument("--onnx", default=os.path.join(CACHE, "onnx"))
     ap.add_argument("--out", default=os.path.join(HERE, "results"))
     ap.add_argument("--limit", type=int, default=0, help="0 = whole cohort")
+    ap.add_argument("--arms", default=",".join(ALL_ARMS),
+                    help="comma-separated subset of " + ",".join(ALL_ARMS))
     # Same sharding scheme as #19. Consequence, stated because it matters:
     # latency from a sharded run is contended wall clock, not a clean timing.
     # Cost claims come from bench_onnx.py, which runs alone.
@@ -161,7 +202,7 @@ def main():
     print(f"cohort: {len(cohort)} instances "
           f"(shard {args.shard}/{args.nshards})", flush=True)
 
-    arms = build_pose_arms(args.onnx)
+    arms = build_pose_arms(args.onnx, args.arms.split(","))
     print("pose arms:", list(arms), flush=True)
 
     det = detectors.build("rtmdet_ins_tiny", args.ckpts, args.cfgs)
@@ -277,23 +318,8 @@ def main():
         "mode": "IMAGE / static single-image inference only",
         "score_threshold_applied_at_record_time": None,
         "decode": "rtmlib RTMPose, the same reference implementation as #18/#19",
-        "pose_arms": {
-            "body7_official": {"source": RTMPOSE_M_BODY7_OFFICIAL_ONNX},
-            "body7_self": {
-                "checkpoint": BODY7_PTH,
-                "checkpoint_sha256": sha256(os.path.join(ckpt_dir, BODY7_PTH)),
-                "onnx": os.path.join(args.onnx, "body7", "end2end.onnx"),
-                "onnx_bytes": os.path.getsize(
-                    os.path.join(args.onnx, "body7", "end2end.onnx")),
-            },
-            "aic_coco_self": {
-                "checkpoint": AIC_COCO_PTH,
-                "checkpoint_sha256": sha256(os.path.join(ckpt_dir, AIC_COCO_PTH)),
-                "onnx": os.path.join(args.onnx, "aic-coco", "end2end.onnx"),
-                "onnx_bytes": os.path.getsize(
-                    os.path.join(args.onnx, "aic-coco", "end2end.onnx")),
-            },
-        },
+        "pose_arms": {k: v for k, v in
+                      ((a, arm_meta(a, ckpt_dir, args.onnx)) for a in arms)},
         "box_sources": ["gt_box", "rtmdet_ins_tiny"],
         "detector": {"name": det.name,
                      "checkpoint": os.path.basename(det.checkpoint),
