@@ -8,6 +8,23 @@ Code, raw per-instance results and the ONNX export recipe: `experiments/checkpoi
 
 ---
 
+## Verdict
+
+**Ship `rtmpose-m_simcc-coco_pt-aic-coco_420e-256x192-d8dd5ca4_20230127`. It is supervised on COCO alone, it measures the same as `body7` on the rear view, and it costs nothing in size or latency. This is a recommendation, not a decision, and section 5 lays out the alternatives.**
+
+| | Question | Answer |
+|---|---|---|
+| 1 | **The four unaudited `body7` datasets** | **All four are problems.** PoseTrack18 is **CC BY-NC 4.0** *and* is built from MPII's raw video, so **MPII is in `body7` twice**. CrowdPose has **no licence at all** and its images are sampled from MSCOCO + MPII + AI Challenger. Halpe has **no licence at all**, at any layer it owns. sub-JHMDB has **no licence statement in the entire archived history of its site**; upstream HMDB51 is CC BY 4.0, applied to clips from commercial movies |
+| 2 | **AI Challenger** | **Not unknowable after all.** The origin site is dead, but an archived copy of the owner's own agreement survives and restricts the data to *"non-commercial purposes such as scientific research or classroom teaching"*. **The dataset-download agreement that expressly overrides it was never archived and is unrecoverable** |
+| 3 | **The `aic-coco` rear swap rate** | **1.0% (3/293) on ground-truth boxes and 0.4% (1/251) on real detector boxes**, against `body7`'s 1.0% and 1.2%. p = 1.00 and p = 0.32. **No measurable cost**, zero size cost, zero latency cost |
+| 4 | **Is there a clean option?** | **No, and the field has none.** But there is a cleaner one than #19 knew about: **MMPose does publish a COCO-supervised RTMPose-m**, in its main model zoo rather than the RTMPose project README. It measures 1.4% / 1.2% rear swap, also indistinguishable from `body7` |
+
+**The single most useful result is a negative one: the checkpoints are statistically indistinguishable on rear chirality swap, so this is a licensing choice and not an accuracy choice.** All three sit inside each other's confidence intervals on the failure mode #18, #19 and #20 all exist to control, and all three are 51.8 MiB, opset 11, and within 4 ms of each other.
+
+**Two corrections to `person-detector.md`, section 7.** #19 wrote that no COCO-only RTMPose-m exists; one does. #19 wrote that swapping to `aic-coco` trades a known restriction for an unknown one; AI Challenger's restriction is now known.
+
+---
+
 ## 1. What `body7` actually contains
 
 **VERIFIED, from MMPose's own definition.** [`projects/rtmpose/README.md`](https://raw.githubusercontent.com/open-mmlab/mmpose/main/projects/rtmpose/README.md) states it in one line:
@@ -210,59 +227,173 @@ That is upstream's own worked example, and upstream's own worked example happens
 
 **And the anchor holds.** `body7_official` reproduces #18 and #19 exactly on the same instances: sign-confirmed REAR swap **3/293 = 1.0%** on ground-truth boxes, **3/251 = 1.2%** on RTMDet-Ins-tiny boxes. Identical to `rear-view-experiment.md` and `person-detector.md`. That is the check that makes this sweep commensurable with theirs.
 
+### 4.1a A third candidate, which #19 said did not exist
+
+**VERIFIED, and it corrects a factual error in `person-detector.md`.** #19 wrote: *"MMPose publishes exactly two 2D body training mixtures for RTMPose, and no others... There is no COCO-only RTMPose-m checkpoint."* That was read off `projects/rtmpose/README.md`, whose section headers are indeed `AIC+COCO` and `Body8`.
+
+**MMPose's main model zoo publishes a third.** [`configs/body_2d_keypoint/rtmpose/coco/rtmpose_coco.md`](https://raw.githubusercontent.com/open-mmlab/mmpose/main/configs/body_2d_keypoint/rtmpose/coco/rtmpose_coco.md) lists `rtmpose-m` at **0.746 AP** on COCO val2017 with the checkpoint `rtmpose-m_simcc-coco_pt-aic-coco_420e-256x192-d8dd5ca4_20230127.pth`.
+
+**Read the name, because it is the whole point.** MMPose's convention is `simcc-<supervised pose training set>` and `pt-<backbone pretraining set>`. So this checkpoint is **keypoint-supervised on COCO alone**, with a backbone pretrained on AIC+COCO. MPII, PoseTrack18, CrowdPose, sub-JHMDB and Halpe are absent entirely; AI Challenger appears only in pretraining. It is a materially different position from `aic-coco`, and it was measured here as a fourth arm.
+
 ### 4.2 The number the ticket asked for
 
 **VERIFIED. There is no measurable rear-view cost. On the deployable condition `aic-coco` is nominally better, and the difference is not significant.**
 
 Chirality swap rate, sign-confirmed instances only - the subset #18's and #19's verdicts quoted:
 
-| condition | orientation | `body7` (#18/#19) | `aic-coco` | z | p |
-|---|---|---|---|---|---|
-| ground-truth box | **REAR** | **1.0% (3/293)** | **1.0% (3/293)** | 0.000 | 1.000 |
-| ground-truth box | FRONT | 0.4% (3/804) | 0.1% (1/804) | -1.001 | 0.317 |
-| RTMDet-Ins-tiny box | **REAR** | **1.2% (3/251)** | **0.4% (1/251)** | -1.004 | 0.315 |
-| RTMDet-Ins-tiny box | FRONT | 0.3% (2/706) | 0.3% (2/706) | 0.000 | 1.000 |
+| condition | orientation | `body7` (#18/#19) | `aic-coco` | z, p | `simcc-coco` | z, p |
+|---|---|---|---|---|---|---|
+| ground-truth box | **REAR** | **1.0% (3/293)** | **1.0% (3/293)** | 0.000, 1.000 | 1.4% (4/293) | 0.380, 0.704 |
+| ground-truth box | FRONT | 0.4% (3/804) | 0.1% (1/804) | -1.001, 0.317 | 0.2% (2/804) | -0.448, 0.654 |
+| RTMDet-Ins-tiny box | **REAR** | **1.2% (3/251)** | **0.4% (1/251)** | -1.004, 0.315 | **1.2% (3/251)** | 0.000, 1.000 |
+| RTMDet-Ins-tiny box | FRONT | 0.3% (2/706) | 0.3% (2/706) | 0.000, 1.000 | 0.3% (2/706) | 0.000, 1.000 |
 
-**So the headline is: 1.0% -> 1.0% on ground-truth boxes, 1.2% -> 0.4% on real detector boxes.** Both null. The FRONT rows are shown so a rear-specific claim is not being made from a whole-cohort effect; they are null too.
+**So the headline is: 1.0% -> 1.0% on ground-truth boxes and 1.2% -> 0.4% on real detector boxes for `aic-coco`, and 1.0% -> 1.4% / 1.2% -> 1.2% for `simcc-coco`.** Every one of those is null. The FRONT rows are shown so a rear-specific claim is not being made from a whole-cohort effect; they are null too.
+
+**The useful form of this result is not "the swap is safe", it is "the choice is not an accuracy choice".** All three checkpoints sit inside each other's confidence intervals on the failure mode the product depends on. That means the decision in section 6 can be made on licensing grounds without trading anything measurable away.
 
 **The honest counterweight, reported because cherry-picking the confirmed subset would be exactly the wrong move.** On the *full* REAR bucket, which includes instances where the visibility proxy and the annotated shoulder order disagree, the direction is not uniform:
 
-| orientation | `body7_official` | `body7_self` | `aic_coco_self` |
-|---|---|---|---|
-| FRONT | 0.005 [0.002, 0.012] n=832 | 0.005 [0.002, 0.012] n=832 | 0.001 [0.000, 0.007] n=832 |
-| OBLIQUE | 0.026 [0.014, 0.047] n=384 | 0.026 [0.014, 0.047] n=384 | 0.031 [0.018, 0.054] n=384 |
-| PROFILE | 0.000 [0.000, 0.038] n=96 | 0.000 [0.000, 0.038] n=96 | 0.000 [0.000, 0.038] n=96 |
-| **REAR** | **0.019 [0.009, 0.039] n=363** | 0.019 [0.009, 0.039] n=363 | **0.028 [0.015, 0.050] n=363** |
+| orientation | `body7_official` | `body7_self` | `aic_coco_self` | `coco_self` |
+|---|---|---|---|---|
+| FRONT | 0.005 [0.002, 0.012] n=832 | 0.005 [0.002, 0.012] n=832 | 0.001 [0.000, 0.007] n=832 | 0.004 [0.001, 0.011] n=832 |
+| OBLIQUE | 0.026 [0.014, 0.047] n=384 | 0.026 [0.014, 0.047] n=384 | 0.031 [0.018, 0.054] n=384 | 0.031 [0.018, 0.054] n=384 |
+| PROFILE | 0.000 [0.000, 0.038] n=96 | 0.000 [0.000, 0.038] n=96 | 0.000 [0.000, 0.038] n=96 | 0.010 [0.002, 0.057] n=96 |
+| **REAR** | **0.019 [0.009, 0.039] n=363** | 0.019 [0.009, 0.039] n=363 | **0.028 [0.015, 0.050] n=363** | **0.036 [0.021, 0.060] n=363** |
 
-On ground-truth boxes and the unfiltered REAR bucket, `aic-coco` is 2.8% against `body7`'s 1.9%. **Every interval in that table overlaps, and the same comparison on the detector boxes runs the other way (1.6% vs 2.0%).** The defensible statement is that the two checkpoints are indistinguishable on rear chirality at this cohort size, not that either is better.
+On ground-truth boxes and the unfiltered REAR bucket, `aic-coco` is 2.8% and `simcc-coco` 3.6% against `body7`'s 1.9%. **Every interval in that table overlaps, and the same comparison on the detector boxes runs the other way for `aic-coco` (1.6% vs 2.0%).** The defensible statement is that the checkpoints are indistinguishable on rear chirality at this cohort size, not that any of them is better. **Anyone quoting only the sign-confirmed table is quoting the half that flatters the swap.**
 
 ### 4.3 Positional error, kept separate as the map requires
 
-**VERIFIED. `aic-coco` is marginally better at every orientation, on both box sources.** Mean OKS after correcting chirality:
+**VERIFIED. `aic-coco` is marginally better at every orientation on both box sources; `simcc-coco` is a wash with `body7`.** Mean OKS after correcting chirality:
 
-| orientation | ground-truth box, `body7` | ground-truth box, `aic-coco` | detector box, `body7` | detector box, `aic-coco` |
-|---|---|---|---|---|
-| FRONT | 0.9500 | **0.9555** | 0.9536 | **0.9576** |
-| OBLIQUE | 0.9249 | **0.9315** | 0.9256 | **0.9345** |
-| PROFILE | 0.9292 | **0.9320** | 0.9300 | **0.9340** |
-| REAR | 0.9297 | **0.9325** | 0.9357 | **0.9388** |
+| orientation | gt box, `body7` | gt box, `aic-coco` | gt box, `simcc-coco` | det box, `body7` | det box, `aic-coco` | det box, `simcc-coco` |
+|---|---|---|---|---|---|---|
+| FRONT | 0.9500 | **0.9555** | 0.9512 | 0.9536 | **0.9576** | 0.9540 |
+| OBLIQUE | 0.9249 | **0.9315** | 0.9243 | 0.9256 | **0.9345** | 0.9270 |
+| PROFILE | 0.9292 | **0.9320** | 0.9268 | 0.9300 | **0.9340** | 0.9253 |
+| REAR | 0.9297 | **0.9325** | 0.9264 | 0.9357 | **0.9388** | 0.9327 |
 
-PCK@0.2 moves the same way (REAR 0.9765 -> 0.9798 on ground-truth boxes). **This is consistent with the published 74.9 -> 75.8 AP, and it extends it to the rear view, which the published number could not.**
+PCK@0.2 moves the same way (REAR 0.9765 for `body7`, 0.9798 for `aic-coco`, 0.9737 for `simcc-coco`, on ground-truth boxes). **This is consistent with the published 74.9 / 75.8 / 74.6 AP ordering, and it extends that ordering to the rear view, which the published numbers could not.**
 
-Composite usable-capture rate, #18's definition, over the whole detector arm without conditioning on correct selection: REAR 0.821 for `body7` against 0.824 for `aic-coco`. Unchanged.
+Composite usable-capture rate, #18's definition, over the whole detector arm without conditioning on correct selection: REAR 0.821 `body7`, 0.824 `aic-coco`, 0.818 `simcc-coco`. Unchanged.
 
 ### 4.4 The costs that are not accuracy
 
-**VERIFIED.** The two graphs are byte-identical in size, because they are the same architecture:
+**VERIFIED.** All three self-exported graphs are byte-identical in size, because they are the same architecture:
 
-| | bytes | MiB |
-|---|---|---|
-| `body7` self-exported `end2end.onnx` | 54,369,767 | 51.85 |
-| `aic-coco` self-exported `end2end.onnx` | 54,369,767 | 51.85 |
-| `body7` official ONNX bundle (what #19 measured) | 54,330,655 | 51.81 |
+| graph | bytes | MiB | 1 thread | 2 threads | 4 threads |
+|---|---|---|---|---|---|
+| `body7` official bundle (what #19 measured) | 54,330,655 | 51.81 | 44.0 ms | 24.7 ms | 14.6 ms |
+| `body7` self-exported | 54,369,767 | 51.85 | 45.9 ms | 23.6 ms | 16.1 ms |
+| `aic-coco` self-exported | 54,369,767 | 51.85 | 34.1 ms | 22.8 ms | 15.5 ms |
+| `simcc-coco` self-exported | 54,369,767 | 51.85 | 34.1 ms | 21.1 ms | 14.4 ms |
 
-**So the swap costs nothing in IPA size.** Both graphs are `ai.onnx` opset 11, domain `''` only, no custom ops, input `input [batch, 3, 256, 192]`, outputs `simcc_x` and `simcc_y` - the same signature #19 recorded for the official bundle, so nothing changes for `flutter_onnxruntime`.
+**So the swap costs nothing in IPA size and nothing in latency.** All graphs are `ai.onnx` opset 11, domain `''` only, no custom ops, input `input [batch, 3, 256, 192]`, outputs `simcc_x` and `simcc_y` - the same signature #19 recorded for the official bundle, so nothing changes for `flutter_onnxruntime`. Median of 20 runs after 3 warmups, x86-64 Linux under ONNX Runtime 1.19.2's CPU execution provider, box otherwise idle. **Same caveat as #19, unchanged: this is not an iOS measurement.** The single-thread spread across identical architectures is measurement noise, not a real difference.
 
-**One provenance oddity, recorded rather than smoothed over.** OpenMMLab tags its checkpoint filenames with an 8-hex digest. `body7`'s matches the file served: SHA256 `e48f03d0cfe1285ee8b6d3457ac3ce33a4594a92b080053ab1ec4a7e300975f2` under a name saying `e48f03d0`. **`aic-coco`'s does not**: the served file is `5e55be2a03f6e5dcd14d088afc4ae5afe94a4f9de93c22e5deb725ad0eee899d` under a name saying `63eb25f7`, its `Last-Modified` is 2023-04-18 although the name says `20230126`, and `Content-Length` matches the download exactly so it is not a truncated fetch. **The `aic-coco` file currently served is not the file that was published under that name.** It works, it exports, and it measures as above - but anyone relying on the filename as an integrity check should know it does not hold. All three SHA256s are recorded in `results/run_meta.json`.
+**One provenance oddity, recorded rather than smoothed over.** OpenMMLab tags its checkpoint filenames with an 8-hex digest. `body7`'s matches the file served: SHA256 `e48f03d0cfe1285ee8b6d3457ac3ce33a4594a92b080053ab1ec4a7e300975f2` under a name saying `e48f03d0`. **`aic-coco`'s does not**: the served file is `5e55be2a03f6e5dcd14d088afc4ae5afe94a4f9de93c22e5deb725ad0eee899d` under a name saying `63eb25f7`, its `Last-Modified` is 2023-04-18 although the name says `20230126`, and `Content-Length` matches the download exactly so it is not a truncated fetch. **The `aic-coco` file currently served is not the file that was published under that name.** It works, it exports, and it measures as above - but anyone relying on the filename as an integrity check should know it does not hold. The `simcc-coco` checkpoint has the same defect (`929f00f2...` under a name saying `d8dd5ca4`). All SHA256s are recorded in `results/run_meta.json`.
 
 ---
+
+## 5. Is there a genuinely clean option at all?
+
+**No. Not in this field, and not from any publisher.** Here is the full set of options with their costs. **This is not a decision, and it is not mine to make.**
+
+### 5.1 The four candidates, side by side
+
+| | `body7` (current) | `aic-coco` | `simcc-coco` | retrain / other engine |
+|---|---|---|---|---|
+| Checkpoint | `rtmpose-m_simcc-body7_pt-body7_420e-256x192` | `rtmpose-m_simcc-aic-coco_pt-aic-coco_420e-256x192` | `rtmpose-m_simcc-coco_pt-aic-coco_420e-256x192` | none exists |
+| Supervised pose data | AIC, COCO, CrowdPose, **MPII**, sub-JHMDB, Halpe, **PoseTrack18** | **AIC**, COCO | **COCO alone** | - |
+| Backbone pretraining | body7 | AIC+COCO | **AIC+COCO** | - |
+| Datasets carrying an express non-commercial term | **MPII, PoseTrack18, AI Challenger** | **AI Challenger** | **AI Challenger, in pretraining only** | - |
+| Datasets carrying no licence at all | CrowdPose, sub-JHMDB, Halpe | - | - | - |
+| Published COCO AP | 74.9 | **75.8** | 74.6 | - |
+| Rear swap, gt box (sign-confirmed) | **1.0%** | **1.0%** (p = 1.00) | 1.4% (p = 0.70) | - |
+| Rear swap, detector box (sign-confirmed) | **1.2%** | **0.4%** (p = 0.32) | **1.2%** (p = 1.00) | - |
+| Official ONNX published? | yes | no, export it | no, export it | - |
+| Graph size / latency | 51.8 MiB / 24.7 ms | 51.8 MiB / 22.8 ms | 51.8 MiB / 21.1 ms | - |
+
+### 5.2 The options, with costs
+
+| | Option | Cost | Residual exposure |
+|---|---|---|---|
+| **O1** | **Keep `body7`, record the exposure** | Nothing. It ships today and it is the only one with an official ONNX | **Three express non-commercial terms** (MPII, PoseTrack18 CC BY-NC 4.0, AI Challenger) plus **three datasets with no grant at all** (CrowdPose, sub-JHMDB, Halpe). The widest surface of the four |
+| **O2** | **Swap to `aic-coco`** | An MMDeploy export, already done and committed here, plus re-running #18's and #19's numbers, also already done | **One express non-commercial term** (AI Challenger), whose superseding data agreement is unrecoverable. Best measured accuracy of the four |
+| **O3** | **Swap to `simcc-coco`** | Same export, same re-measurement, both done here | **AI Challenger in backbone pretraining only.** Supervised pose data is COCO alone, and COCO is the one dataset in the field with a real grant (CC BY 4.0 annotations, no NC clause) |
+| **O4** | Train an RTMPose-m on COCO alone, from an ImageNet-only backbone | A real training job: 420 epochs, 8-GPU config, far outside this effort. No published checkpoint to start from | Only ImageNet, which attaches to essentially every vision model including the RTMDet-Ins detector #19 chose. Not a discriminator |
+| **O5** | Drop to a fallback engine | Discards [#16](https://github.com/grez-lucas/poseperfect/issues/16) and #18's measured result. BlazePose is 14.4% rear swap, MoveNet Thunder 7.2%, against RTMPose's 1.0% | Unknown, and #18 already established the accuracy cost is severe |
+| **O6** | Ask the rights holders | Free, slow, and partly impossible: `challenger.ai` is dead, `posetrack.net`'s DNS delegation is broken, `jhmdb.is.tue.mpg.de` is a 2014-era 404. MPII and HICO-DET have live contacts | Would resolve MPII and HICO-DET only |
+
+**Two things that are true of every option and should not be used to discriminate between them.**
+
+1. **ImageNet is in all of them**, via the CSPNeXt backbone, and it is in the RTMDet-Ins detector #19 chose too. It is not a differentiator.
+2. **OpenMMLab has never stated in writing that its checkpoints are Apache-2.0.** #19 established that and it is unchanged here. It applies identically to all four RTMPose candidates and to the detector.
+
+**And one thing that is out of bounds for this ticket, per the issue: whether a dataset use restriction legally reaches a model trained on that dataset.** It is unsettled generally, it is the crux of every row above, and a research ticket is the wrong instrument for it. **Recorded as a risk. Not resolved.**
+
+---
+
+## 6. Recommendation
+
+**Ship `simcc-coco` - `rtmpose-m_simcc-coco_pt-aic-coco_420e-256x192-d8dd5ca4_20230127` - option O3. This is a recommendation, not a decision.**
+
+The reasoning is short because the measurement made it short. **The three candidates are statistically indistinguishable on rear chirality swap, which is the failure mode this whole product line of tickets exists to control**, and they are identical in graph size, opset and latency. So there is nothing to trade. Given nothing to trade, take the checkpoint with the smallest licensing surface.
+
+`simcc-coco` is the only option whose **supervised pose training data is a single dataset that actually grants something**: COCO's annotations are CC BY 4.0 with no non-commercial clause. It removes MPII, PoseTrack18 (and therefore MPII a second time), CrowdPose, sub-JHMDB and Halpe outright, and demotes AI Challenger from supervised training data to backbone pretraining. **That last distinction is a real reduction in exposure and it is also the weakest link in the recommendation** - it is a narrower claim than "AI Challenger is gone", and section 5's out-of-bounds question applies to pretraining exactly as it does to training.
+
+**If Lucas prefers to weight measured accuracy over licensing surface, O2 (`aic-coco`) is the defensible alternative**: it is the best of the four on positional error at every orientation and the best on detector-box rear swap, at the cost of keeping AI Challenger as supervised training data. **What is not defensible is O1**, keeping `body7`, now that the audit is complete: it carries the widest surface, it is not more accurate, and the swap has been shown to cost nothing.
+
+### 6.1 The residual risk, in one paragraph
+
+PosePerfect's pose model is trained on photographs that neither the model's publisher nor the dataset's publisher owns. Every dataset in this field is assembled from other people's pictures - YouTube frames, Flickr uploads, clips from commercial films - and the labs that assembled them say so plainly and then disclaim holding the copyright. `simcc-coco` narrows this to COCO, whose publisher grants the *annotations* under CC BY 4.0 and states that use of the *images* "must abide by the Flickr Terms of Use", plus AI Challenger in the backbone, whose publisher wrote a non-commercial clause on a website that no longer exists. **What that means in practice: as a personal tool that is not sold and not distributed, per map decision 1, there is no realistic exposure at all, and nothing here needs acting on today.** The exposure appears only if PosePerfect is ever sold, subscribed, ad-supported or otherwise commercialised. At that moment the open question is not a licence-compatibility problem - **nothing here obliges anyone to open-source anything** - it is whether a use restriction written over a dataset follows the model trained on it, which is unsettled law that this ticket was explicitly told not to try to settle. **The practical action is therefore not legal work now; it is to make the checkpoint a one-line configuration rather than an assumption baked into the pipeline, so that if the answer ever arrives, swapping is an afternoon.** This ticket has already proved that swapping is an afternoon: the export, the re-measurement and the comparison are committed in `experiments/checkpoint-swap/`.
+
+---
+
+## 7. What this means for `person-detector.md` and #16
+
+**Two corrections to the record, both mine to report and neither mine to apply.**
+
+1. **#19's section 6.1 says "There is no COCO-only RTMPose-m checkpoint."** That is wrong. `rtmpose-m_simcc-coco_pt-aic-coco` is keypoint-supervised on COCO alone and is published in MMPose's main COCO model zoo. The error came from reading `projects/rtmpose/README.md` and not `configs/body_2d_keypoint/rtmpose/coco/`.
+2. **#19's option B2 says swapping to `aic-coco` "may trade a known restriction for an unknown one".** AI Challenger's restriction is no longer unknown: section 3 recovers an express non-commercial clause from the owner's own archived agreement. The trade is now known in both directions.
+
+**[#16](https://github.com/grez-lucas/poseperfect/issues/16)'s stated prerequisite that "RTMPose weight licensing must verify clean" does not hold for any published RTMPose-m checkpoint**, and #19 was right that it does not hold for `body7`. It holds least badly for `simcc-coco`. **That is an amendment to a settled decision and it belongs in front of Lucas, which is what the resolution comment on #20 is for.**
+
+---
+
+## 8. Caveats, stated plainly
+
+1. **COCO is clothed people in everyday scenes.** Unchanged from #18 and #19 and still the largest gap on the map: nobody has evaluated any of these checkpoints on heavily muscled, oiled, minimally clothed physique athletes holding extreme static poses. This experiment measures a checkpoint difference. **It does not measure our population.**
+2. **The rear-facing label is #18's visibility-derived proxy**, about 81% pure on REAR, and ordinal rather than angular. Every headline number is also reported on the sign-confirmed subset, and section 4.2 reports the unfiltered bucket too, where the direction is less flattering.
+3. **The cohort is too small to resolve a difference this size.** Three swaps out of 293 is three events. A null two-proportion z-test at n=293 rules out a large difference, not a small one. **"Indistinguishable" is the claim; "equivalent" is not.**
+4. **Nothing was validated by eye.** Map constraint 2. No overlay was rendered at any point.
+5. **No score threshold was applied when recording.** Map constraint 3.
+6. **Latency is x86-64 Linux under ONNX Runtime's CPU execution provider.** Not iOS. The ordering is meaningful, the absolute numbers are not the device numbers.
+7. **Three of the seven dataset owners' sites are dead**, so their terms are quoted from Internet Archive snapshots of the owners' own pages, labelled as archived with their dates. An archived owner page is a primary source; a third-party summary is not, and none was used.
+8. **The AI Challenger translation is mine.** The original Chinese is quoted alongside it in section 3 so it can be checked.
+9. **This document does not establish that any option is legally safe.** It establishes what each dataset's publisher wrote down, and what each checkpoint measures. The step from there to a legal conclusion is out of bounds for this ticket by the ticket's own terms.
+
+---
+
+## 9. Not established
+
+Listed so nobody mistakes silence for a clean bill.
+
+**Licence**
+
+1. **Whether a dataset use restriction reaches a model trained on that dataset.** Out of bounds by the ticket's own terms, unsettled generally, and the crux of everything above.
+2. **AI Challenger's 《数据集下载协议》 (Dataset Download Agreement).** The one instrument that expressly overrides the clause quoted in section 3, at `challenger.ai/terms/data`. The Internet Archive never captured it, `challenger.ai` no longer serves, and the full Wayback index for `challenger.ai/terms*` returns exactly one row. **Permanently unrecoverable as far as this ticket can tell.**
+3. **Whether OpenMMLab's checkpoints are covered by the Apache-2.0 licence on its code.** Unchanged from #19. Never stated in writing. Nobody has asked.
+4. **Which Creative Commons licences HICO-DET's Flickr images actually carry.** "Creative Common images from Flickr" spans seven licences, three of them NonCommercial, and no per-image manifest is published.
+5. **The `README` inside HICO-DET's 7.5 GB `hico_20160224_det` tarball.** Its existence is confirmed by both the `hico_benchmark` repo and MMPose's expected directory layout. It is the one place HICO-DET terms could still be written down, and it was not downloaded.
+6. **What terms, if any, J-HMDB's login-gated download page carried.** The Internet Archive crawler was never logged in, and the site is dead.
+7. **What fraction of CrowdPose's 20,000 images came from MPII.** The paper gives no per-source breakdown.
+8. **Whether PoseTrack18's doubling of PoseTrack17 drew on the same MPII pool.** The ECCV'18 page says the videos are "similar to" PoseTrack17's and the `*_mpii` naming persists in the 2018 format, but no owner statement says so explicitly, and none contradicts it.
+
+**Measurement**
+
+9. **Anything about physique athletes.** Third ticket in a row to say so.
+10. **On-device latency and real linked IPA size.** Same gap #19 recorded. Needs the `ios-builder` pipeline from [#2](https://github.com/grez-lucas/poseperfect/issues/2).
+11. **Whether the swap changes anything for the segmentation half of [#17](https://github.com/grez-lucas/poseperfect/issues/17).** It cannot: the mask comes from RTMDet-Ins, which this ticket did not touch.
+12. **fp16 or quantised variants of any of the four checkpoints.** Not exported, not evaluated.
+13. **RTMPose-m at 384x288, and RTMPose-l/x.** The `aic-coco` 384x288 checkpoint publishes 77.0 AP. Out of scope here, which fixed the size and input resolution #16 chose.
