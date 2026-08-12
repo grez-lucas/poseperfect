@@ -90,6 +90,13 @@ not entitlements at all, so they are unaffected by the free tier.
 
 ## Build
 
+**Always run `builder` from the repository root.** It reads `ios.path` from
+`builder.json` there. Run it from inside `app/` and it silently re-detects the
+layout instead, passing `ios_path: ios`, and the runner fails 20 seconds in
+with `cd: ios: No such file or directory` (run
+[31630666295](https://github.com/grez-lucas/poseperfect/actions/runs/31630666295)).
+The failure is cheap but the message does not point at the cause.
+
 ```
 builder ios build            # dispatches the workflow, waits, downloads to ./dist/
 ```
