@@ -118,9 +118,61 @@ Recorded as they are taken. Nothing is filled in from inference.
 |---|---|
 | Cold `builder ios build` wall clock | **4m16s** (run [31628984414](https://github.com/grez-lucas/poseperfect/actions/runs/31628984414), 2026-08-12, `build` job 4m10s of it) |
 | Unsigned debug IPA size | **30.4 MB** |
-| Warm rebuild wall clock | not yet measured |
-| `flutter attach` hot reload works | not yet attempted |
-| Certificate `notAfter` | not yet read |
+| Signed IPA size | **32.8 MB** |
+| `flutter attach` hot reload | **works, ~700ms** - `Reloaded 1 of 861 libraries in 706ms (compile: 19 ms, reload: 112 ms, reassemble: 386 ms)`. Needs `tool/dev_ios.sh`; see below |
+| Camera on device | **works**, front and back, after the permission prompt |
+| Provisioning profile expiry | **7 days exactly.** Issued 2026-08-12 19:12:25, expires **2026-08-19 19:12:25**, `TimeToLive: 7` |
+| Team ID | `UUGFKB5GBP`, bundle becomes `com.grezlucas.poseperfect.UUGFKB5GBP` |
+| Warm rebuild wall clock | not measured - hot reload made it uninteresting |
+
+Profile entitlements are `application-identifier`, `keychain-access-groups`,
+`get-task-allow`, `com.apple.developer.team-identifier`. **No camera
+entitlement**, confirming #2: camera is an Info.plist usage string, not a
+capability, so the free tier never gates it. `get-task-allow` is what permits
+the debugger attach that Flutter's JIT requires.
+
+## The inner loop
+
+**Use `tool/dev_ios.sh`.** Plain `builder dev flutter` does not work on this
+repo, for four independent reasons, each verified in #8:
+
+1. **Wrong working directory.** `flutter.go:133` runs `flutter attach` without
+   setting `cmd.Dir`, so it inherits builder's cwd. Our Flutter project is
+   `app/`, so from the repo root attach dies with
+   `Target file "lib/main.dart" not found` - while from `app/`,
+   `session.go:66` cannot find `dist/`. The two requirements conflict, so the
+   script runs builder from the root and attach from `app/`.
+2. **MobAI's port forward relays nothing on Linux.** `POST /forward` returns a
+   real host listener, but reading through it gives `Empty reply from server`.
+   The same VM service answers **HTTP 200 through `iproxy`** over the same
+   system usbmuxd. `tool/iproxy_forward.sh` replaces it, printing the
+   `FORWARD_READY` marker that Flutter's `CustomDevicePortForwarder` waits for
+   (it requires a `forwardPortSuccessRegex` and blocks forever without a
+   match, and iproxy is silent).
+3. **`builder dev flutter` rewrites `custom_devices.json` on every run**, via
+   `EnsureCustomDevice`, reverting the fix from point 2. The patch must be
+   re-applied *after* every builder invocation, which is why it lives in a
+   script rather than being configured once.
+4. **Widget-creation tracking mismatch.** `flutter build ios` never registers
+   `--track-widget-creation`, so the IPA is built with it off, while
+   `flutter attach` defaults it on. Every reloaded widget then throws
+   `Lookup failed: _location in widget_inspector.dart`. Attach must pass
+   `--no-track-widget-creation` to match the build.
+
+```
+./tool/dev_ios.sh          # then press r to hot reload
+```
+
+Native changes (Swift, Podfile, a new plugin) still need a full
+`builder ios build` and reinstall.
+
+**Not fixed:** MobAI offers no way to use a self-hosted anisette server. Its
+`settings.json` has no field for it and the server list is compiled into the
+binary, so all signing went to `ani.sidestore.io` despite a local
+`anisette-v3-server` running on :6969. #2's prerequisite "do not use a shared
+public one" is therefore **not satisfied**. Options if this matters: sign with
+`iloader` directly (its Settings does expose an anisette field), or point
+`ani.sidestore.io` at localhost via `/etc/hosts`.
 
 The 30-minute `timeout-minutes` that ios-builder issue #3 reported hitting was
 not close: the first cold build, with no DerivedData cache and no Pods cache,
