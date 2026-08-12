@@ -134,3 +134,44 @@ The chain closes on primary sources at both ends. MPII's own [download page](htt
 **VERIFIED, and it is the only dataset in the mixture that grants anything.** From [COCO's terms of use](https://github.com/cocodataset/cocodataset.github.io/blob/master/dataset/termsofuse.htm): the annotations are *"licensed under a Creative Commons Attribution 4.0 License"*, and *"Use of the images must abide by the Flickr Terms of Use."* **No academic-only clause, no non-commercial clause.** COCO carries the same third-party-image caveat as everything else here, but unlike MPII it does not convert that caveat into a use restriction.
 
 ---
+
+## 3. AI Challenger - the one #19 could not establish at all
+
+**#19 recorded AI Challenger as unknowable. It is not. An archived copy of the owner's own agreement survives, and it contains an express non-commercial clause.**
+
+### 3.1 What is dead, and what is not
+
+**VERIFIED.** `challenger.ai` still resolves - `47.92.70.128`, served by `ns1.alidns.com` / `ns2.alidns.com`, i.e. Alibaba Cloud - but nothing answers. Both `http://challenger.ai/` and `https://challenger.ai/` time out at the TCP layer with `time_connect=0.000000`, meaning the socket never opens. This is not a 404 and not a parked page; the host silently drops traffic. The registration is alive, the service is gone.
+
+The surviving repository [`AIChallenger/AI_Challenger_2017`](https://github.com/AIChallenger/AI_Challenger_2017) confirms #19's reading: `https://api.github.com/repos/AIChallenger/AI_Challenger_2017/license` returns 404, the repo root holds only `Baselines/`, `Evaluation/` and `README.md`, and the 12-line README contains no terms at all - it points at the dead site: *"AI Challenger is a platform for open datasets and programming competitions to artificial intelligence (AI) talents around the world. To participate, please visit https://challenger.ai/."*
+
+### 3.2 The archived agreement, which #19 did not reach
+
+**VERIFIED, from an Internet Archive snapshot of the owner's own `challenger.ai/terms` page, dated 2018-08-11** (`web.archive.org/web/20180811180623id_/https://challenger.ai/terms`). The page is the competition entrant agreement, 竞赛选手报名协议. Article 3, 知识产权 (Intellectual Property), item 3, in the original Chinese:
+
+> "除非举办方和选手另有约定，选手应保证其仅在科学研究或课堂教学等非商业性目的范围内使用基础数据，并对基础数据的使用自行承担全部责任，以保证举办方及其关联方免受任何因基础数据使用导致的索赔或诉讼。"
+
+**My translation, labelled as mine:** *"Unless otherwise agreed between the organiser and the contestant, the contestant shall ensure that they use the Base Data only within the scope of non-commercial purposes such as scientific research or classroom teaching, and shall bear full responsibility for their use of the Base Data, so as to hold the organiser and its affiliates harmless from any claim or litigation arising from that use."*
+
+"基础数据" (Base Data) is defined in item 2 of the same article as the images, videos and data supplied by the organiser. Item 2 adds, in the original: *"选手如在使用该等成果过程中使用了举办方及其关联方享有知识产权或其他合法权利的基础数据，应向举办方及其关联方支付使用费用"* - **my translation:** *"if the contestant uses, in the course of using such results, Base Data in which the organiser or its affiliates hold intellectual property or other lawful rights, the contestant shall pay the organiser and its affiliates a usage fee."*
+
+**That is an express non-commercial restriction over the data, written by the dataset's own publisher.**
+
+### 3.3 What still cannot be established, and why it matters
+
+**Two limits, stated plainly rather than buried.**
+
+1. **The instrument that would actually govern a dataset download was never archived.** Article 3 item 1 opens *"除数据集下载协议另有约定外"* (*"except as otherwise agreed in the Dataset Download Agreement"*), and Article 5 item 1 directs the reader to the 《数据集下载协议》. That document lived at `challenger.ai/terms/data`. Querying the full Wayback index for the path (`web.archive.org/cdx/search/cdx?url=challenger.ai/terms*`) returns **exactly one row: `https://challenger.ai/terms 20180811180623 200`.** `/terms/data`, `/terms/copyright` and `/terms/user` were **never captured**. So the agreement that expressly overrides the one quoted above is unrecoverable, and it could in principle be either stricter or looser.
+2. **The agreement quoted is a competition entrant agreement, not a dataset licence.** It binds people who clicked "register" for the 2017 competition. Whether it reaches someone who obtained the dataset years later from a mirror is a different question, and not one this ticket can settle.
+
+The dataset's own page, `challenger.ai/dataset/keypoint` (archived 2019-06-23), carries download links with SHA1 sums and **no terms text of any kind** - only a takedown contact: *"如果发现本网站存在侵犯自身合法权益的内容，请及时与 hi@challenger.ai 取得联系。"*
+
+### 3.4 The verdict, and how it changes the picture
+
+**PARTIALLY ESTABLISHED, and it resolves against AI Challenger rather than for it.**
+
+#19 wrote that "unknowable" is worse than a known restriction. That framing still holds, and AI Challenger now sits in both categories at once: **there is a recoverable, owner-written non-commercial term over the data, and the document that would supersede it is permanently unrecoverable.** Practically, that is the same posture as MPII with worse paperwork - a restriction you can read, sitting under an agreement you cannot.
+
+**The consequence for the checkpoint choice is direct: `aic-coco` does not escape the problem, it relocates it.** Swapping `body7` for `aic-coco` drops MPII, PoseTrack18, CrowdPose, sub-JHMDB and Halpe, and keeps AI Challenger, whose own entrant agreement restricts the data to *"non-commercial purposes such as scientific research or classroom teaching"*. That is a smaller surface, not a clean one.
+
+---
