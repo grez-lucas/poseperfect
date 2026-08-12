@@ -4,6 +4,15 @@ Resolution of [#19](https://github.com/grez-lucas/poseperfect/issues/19), 2026-0
 
 Code, raw per-instance results and the ONNX export recipe: `experiments/person-detector/`. It reuses ticket [#18](https://github.com/grez-lucas/poseperfect/issues/18)'s cohort, crop construction and chirality test verbatim, so every number here sits on the same 1,675 COCO val2017 instances as `rear-view-experiment.md`.
 
+> **CORRECTED IN TWO PLACES by [#20](https://github.com/grez-lucas/poseperfect/issues/20).** This
+> document's detector findings stand unchanged. Two of its statements about the
+> *pose* checkpoint do not, and both are marked `CORRECTION (#20)` inline below:
+> a COCO-only RTMPose-m checkpoint **does** exist (section 9.1), and AI
+> Challenger's terms **are** establishable (section 9.2). The checkpoint
+> decision itself now lives in
+> [`checkpoint-licences.md`](checkpoint-licences.md), which ships
+> `simcc-coco`, not the `body7` this document assumed.
+
 ---
 
 ## Verdict
@@ -362,6 +371,14 @@ And MPII's [download page](https://www.mpi-inf.mpg.de/departments/computer-visio
 
 MMPose publishes exactly **two** 2D body training mixtures for RTMPose, and no others. The section headers in `projects/rtmpose/README.md` are `AIC+COCO` and `Body8`. **There is no COCO-only RTMPose-m checkpoint.**
 
+> **CORRECTION (#20): the last sentence is wrong.** A COCO-supervised RTMPose-m
+> checkpoint does exist, `rtmpose-m_simcc-coco_pt-aic-coco_420e-256x192-d8dd5ca4`,
+> at 74.6 AP. This section read only `projects/rtmpose/README.md`; the main
+> MMPose model zoo carries more mixtures than that file's two section headers
+> suggest. **That checkpoint is what now ships**, because #20's audit found
+> `body7` carries three express non-commercial terms plus three datasets with no
+> grant at all. See [`checkpoint-licences.md`](checkpoint-licences.md).
+
 | | `body7` (current choice) | `aic-coco` (the alternative) |
 |---|---|---|
 | Checkpoint | `rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504` | `rtmpose-m_simcc-aic-coco_pt-aic-coco_420e-256x192-63eb25f7_20230126` |
@@ -375,6 +392,15 @@ MMPose publishes exactly **two** 2D body training mixtures for RTMPose, and no o
 **The accuracy question answers itself: there is no accuracy cost.** The `aic-coco` checkpoint is **0.9 AP higher on COCO** and 0.12 PCK lower on Body8. Same architecture, same size, same speed. On the published numbers this is a wash, and if anything the MPII-free checkpoint is the better one on the benchmark that matters most for a single-person top-down pipeline.
 
 **But it does not clear the licence question, it relocates it.** `aic-coco` drops MPII and keeps AI Challenger, and **AI Challenger's terms could not be established at all**: its host `challenger.ai` is defunct, the surviving [GitHub repository](https://github.com/AIChallenger/AI_Challenger_2017) has no LICENSE file and no terms in its README, and web search was unavailable during this session. **Swapping to `aic-coco` trades a known restriction for an unknown one.** That is not obviously an improvement, and it should not be presented as one.
+
+> **CORRECTION (#20): AI Challenger's terms are not unknown.** Giving up here
+> was premature. The Internet Archive holds the owner's own `/terms` page
+> (2018-08-11): *"选手应保证其仅在科学研究或课堂教学等非商业性目的范围内使用基础数据"* -
+> use the base data only for non-commercial purposes such as scientific research
+> or classroom teaching. So AIC is an **express non-commercial term**, quotable,
+> not an unknown. The trade is therefore known-for-known, and the argument above
+> no longer holds. What remains genuinely unrecoverable is AIC's separate
+> 《数据集下载协议》, which was never archived.
 
 **COCO itself is clean, and that is worth stating because it is the one dataset here that is.** From [COCO's terms of use](https://github.com/cocodataset/cocodataset.github.io/blob/master/dataset/termsofuse.htm), verbatim: *"The annotations in this dataset along with this website belong to the COCO Consortium and are licensed under a Creative Commons Attribution 4.0 License."* and *"The COCO Consortium does not own the copyright of the images. Use of the images must abide by the Flickr Terms of Use. The users of the images accept full responsibility for the use of the dataset."* **There is no academic-only clause and no non-commercial clause.** COCO carries the same Flickr-image caveat that Objects365 and MPII do, but unlike them it does not convert that caveat into a use restriction. This is exactly why the RTMDet-Ins detector recommended by this ticket, trained on COCO alone, is in a better position than the pose model it will feed.
 
@@ -418,7 +444,7 @@ Two questions here are not mine to settle, and both are of the "accept a stated 
 | | Option | Cost | Residual risk |
 |---|---|---|---|
 | B1 | **Accept it under map decision 1**, recording that the app is a personal tool and MPII permits that | none | Re-opens the moment the app is ever sold |
-| B2 | Switch to an `aic-coco` RTMPose-m checkpoint | a re-run of #18's numbers on the new weights | AI Challenger's terms are unknown, so this may trade a known restriction for an unknown one |
+| B2 | Switch to an `aic-coco` RTMPose-m checkpoint | a re-run of #18's numbers on the new weights | ~~AI Challenger's terms are unknown, so this may trade a known restriction for an unknown one~~ **CORRECTION (#20): AIC's terms are established (express non-commercial), and the re-run was done - all candidates are statistically indistinguishable on rear chirality. `simcc-coco` ships.** |
 | B3 | Retrain RTMPose-m on COCO alone | a training job well outside this effort | none |
 | B4 | Change engine again | discards #16 | unknown |
 

@@ -3,6 +3,25 @@
 Research resolving [issue #2](https://github.com/grez-lucas/poseperfect/issues/2).
 Date: 2026-08-07. Environment assumed: Pop!_OS x86_64, one physical iPhone, no Mac, no paid Apple Developer Program membership.
 
+> **EXECUTED AND PARTLY CORRECTED by
+> [#8](https://github.com/grez-lucas/poseperfect/issues/8), 2026-08-12.** The
+> pipeline was run end to end on the physical iPhone and **it works** - build,
+> sign, install, camera, hot reload. The headline conclusions hold. Four
+> statements below do not, and each is marked `CORRECTION (#8)` or
+> `SETTLED (#8)` inline:
+>
+> - **The account-lock risk is not cheaply mitigable.** MobAI cannot be pointed
+>   at a self-hosted anisette server; the `--anisette-server` flag belongs to
+>   `iloader-cli`, which MobAI invokes with a value it chooses (Risk 2, and the
+>   Impactor comparison in Q5).
+> - **`builder dev flutter` does not deliver hot reload unaided** - four stacked
+>   defects, none visible from source tracing alone (Q4 inner-loop table).
+> - **Cold build is 4m16s**, previously unestablished (Q4).
+> - **Risk 3 is confirmed**, not merely suspected.
+>
+> The operational runbook is now [`../ios-pipeline.md`](../ios-pipeline.md).
+> This file remains the *reasoning*; that file is the *procedure*.
+
 ## Bottom line
 
 **The pipeline exists and every load-bearing component was verified to be present and Linux-native. It has not been verified to run, because that requires the physical iPhone.**
@@ -255,9 +274,39 @@ This is the load-bearing detail: **because `--debug-url` is supplied, Flutter sk
 | Change type | Cost |
 |---|---|
 | Dart code in `lib/` | Hot reload, sub-second. `builder dev flutter` watches `lib/**.dart` (debounce 100ms, ignoring `.g.dart`/`.freezed.dart`) and sends `r` on the attached process. VERIFIED: `internal/dev/flutter.go` lines 185-219. |
+
+> **CORRECTION (#8): the timing is right, the mechanism is not.** Hot reload was
+> measured at **~700ms** on the device, so "sub-second" holds. But
+> `builder dev flutter` **does not achieve it unaided** - it fails with
+> `Connection closed before full header was received` for four stacked reasons,
+> and the tracing above missed all four because they only appear at runtime:
+>
+> 1. `flutter.go:133` runs `flutter attach` **without setting `cmd.Dir`**, so it
+>    inherits builder's cwd. A Flutter project not at the repo root cannot work
+>    from either directory: the root gives `Target file "lib/main.dart" not
+>    found`, and the project dir leaves `session.go:66` unable to find `dist/`.
+> 2. **MobAI's `POST /forward` creates a real host listener that relays
+>    nothing** on Linux - reading through it returns `Empty reply from server`.
+>    `iproxy`, over the **same system usbmuxd MobAI itself uses**, returns
+>    `HTTP/1.1 200 OK` on the same VM service, so the USB transport is fine and
+>    MobAI's relay is the broken part. This is Risk 3 landing.
+> 3. `builder dev flutter` **rewrites `~/.config/flutter/custom_devices.json` on
+>    every run** through `EnsureCustomDevice`, silently reverting any fix to
+>    `forwardPort`.
+> 4. `build_ios.dart` never calls `usesTrackWidgetCreation`, so the IPA is built
+>    with tracking off while `attach.dart:137` defaults it on; reloaded widgets
+>    throw `Lookup failed: _location in widget_inspector.dart`.
+>
+> `tool/dev_ios.sh` encapsulates all four. See `docs/ios-pipeline.md`.
 | Swift/ObjC, Podfile, native plugin, new pubspec dependency with native code | Full `builder ios build` round trip to a macOS runner, then re-install. README: "Native code changes ... Run `builder ios build` and reinstall". |
 
 **COULD NOT ESTABLISH**: the actual wall-clock of a cold `builder ios build`. The workflow has `timeout-minutes: 30` and caches DerivedData, Pods and node_modules. Issue #3 in the tracker is titled "How to increase the timeout limit ?" - so at least one user hit 30 minutes. <https://github.com/MobAI-App/ios-builder/issues/3>
+
+> **SETTLED (#8): 4m16s cold**, with no DerivedData and no Pods cache, on this
+> project (run
+> [31628984414](https://github.com/grez-lucas/poseperfect/actions/runs/31628984414),
+> `build` job 4m10s of it). A seventh of the timeout, so issue #3's experience
+> does not generalise to a project this size.
 
 **A correction to the map's build-budget assumption.** The README says "GitHub Actions free tier: 2,000 minutes/month (macOS uses 10x multiplier = ~200 effective minutes), approximately 15-20 builds per month". That is the *private repo* figure. Map decision 11 already chose a public repo, and GitHub confirms: **"The use of standard GitHub-hosted runners is free: In public repositories."** <https://docs.github.com/en/billing/managing-billing-for-your-products/about-billing-for-github-actions>. So the 15-20 builds/month ceiling does not apply here. **VERIFIED.**
 
@@ -393,6 +442,11 @@ If MobAI is what breaks (rather than signing), the three roles it plays are all 
 
 SideStore's own docs warn: "Older Anisette servers that are used by many users are known to cause **locking of Apple ID's**" (<https://docs.sidestore.io/docs/faq>). Self-hosting removes both the availability risk and the account-lock risk. **Note this rules against Impactor slightly** - Impactor cannot point at a custom anisette URL (#191), whereas MobAI has a `--anisette-server` flag and iloader has a Settings field.
 
+> **CORRECTION (#8): MobAI does not expose a custom anisette URL either**, so
+> this does not rule against Impactor at all - MobAI is in the same position.
+> Only **iloader** genuinely offers the field. See the correction under
+> [Risk 2](#2-anisette-servers-are-third-party-and-community-run).
+
 ### Ruled out, with reasons
 
 | Option | Why not |
@@ -430,7 +484,37 @@ Anisette headers are required for Apple GrandSlam auth: Apple's `AOSKit`/`CoreAD
 
 **Mitigation, and it is cheap: self-host.** `docker run -d --restart always --name anisette-v3 -p 6969:6969 dadoum/anisette-v3-server` (<https://github.com/Dadoum/anisette-v3-server>, last push 2026-08-01). MobAI has an `--anisette-server` flag and iloader has a Settings field, so both can be pointed at it. **VERIFIED** that the flag/field exist; **INFERRED** that self-hosting works end to end here.
 
+> **CORRECTION (#8): the mitigation does not work through MobAI, so this risk is
+> NOT cheap to mitigate.** Executed 2026-08-12. The anisette server was
+> self-hosted and served correctly on :6969, and **MobAI ignored it**: all three
+> signing calls ran
+> `iloader-cli sign ... --anisette-server ani.sidestore.io`, the shared public
+> server this section warns about. MobAI's `settings.json` has **no anisette
+> field**, and its server list is compiled into the binary
+> (`ani.sidestore.io`, `ani.sidestore.app`, `ani.sidestore.zip`,
+> `ani.f1sh.me`, `ani.846969.xyz`, `ani.neoarz.com`,
+> `anisette.crystall1ne.dev`, `anisette.wedotstud.io`,
+> `ani.idevicehacked.com`), rotating between them on failure - the log shows
+> exactly that after a `-22406` login failure.
+>
+> **The `--anisette-server` flag is `iloader-cli`'s, not MobAI's.** MobAI
+> *invokes* iloader-cli with a value **it** chooses. Calling the flag a MobAI
+> capability was the error, and it matters: it is the sole basis on which this
+> section rated the account-lock risk mitigable. **It is not, through MobAI.**
+> Remedies that do work: sign with `iloader` directly (its Settings genuinely
+> exposes the field), or point `ani.sidestore.io` at localhost in `/etc/hosts`.
+
 ### 3. The Linux desktop build is almost certainly untested by real users.
+
+> **CONFIRMED (#8), and it cost real time.** MobAI 2.8.0's Linux tarball had
+> **0 downloads** when fetched. Three distinct Linux-only defects surfaced on
+> first contact: the port forward relays nothing (Risk 2 correction and the
+> inner-loop correction above), the NCM interface fails outright
+> (`configuration id 5 not found ... Available config ids: [1 2 3 4]`, harmless
+> since signing and install use usbmuxd), and launching MobAI **writes a global
+> `mobai` MCP server into `~/.claude.json`** and starts a proxy to
+> `app.mobai.run`, neither announced. The prediction "expect to be the one
+> filing the Linux bug reports" was correct.
 
 GitHub download counts on MobAI v2.7.2 as of 2026-08-07: `MobAI.exe` 48, `MobAI_2.7.2_darwin_arm64_app.tar.gz` 79, **`mobai.deb` 1, `MobAI_2.7.2_linux_amd64.tar.gz` 1, `mobai.rpm` 2**. **VERIFIED** via the GitHub releases API.
 
