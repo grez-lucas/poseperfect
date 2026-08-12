@@ -34,7 +34,7 @@ wilson, two_prop_z, md = _pd.wilson, _pd.two_prop_z, _pd.md
 
 BUCKET_ORDER = ["FRONT", "OBLIQUE", "PROFILE", "REAR"]
 IOU_HIT = 0.5
-ARMS = ["body7_official", "body7_self", "aic_coco_self"]
+ALL_ARMS = ["body7_official", "body7_self", "aic_coco_self", "coco_self"]
 
 
 def rate_table(d, value_col, arms, buckets=BUCKET_ORDER, ci=True):
@@ -74,10 +74,35 @@ def counted(d, arm, bucket, col="pose_chirality_swapped"):
     return int(s.sum()), len(s)
 
 
+def check_detector_agreement(d):
+    """Every arm must have seen the SAME detector box for a given instance.
+
+    This is the check that makes a two-pass sweep legitimate. `run.sh` sweeps
+    all arms in one pass, but the committed results were produced as three arms
+    then one, and concatenated. The arms are independent per instance and the
+    detector runs once per instance on a deterministic crop, so the second pass
+    must reproduce the identical box. Verify that rather than assert it.
+    """
+    det = d[d.box_source == "rtmdet_ins_tiny"]
+    cols = ["n_person_det", "top1_score", "top1_iou", "best_iou", "best_rank"]
+    bad = []
+    for c in cols:
+        n = det.groupby("ann_id")[c].nunique(dropna=False)
+        bad.extend(f"{c}: {int((n > 1).sum())} instances" for _ in [0]
+                   if (n > 1).any())
+    if bad:
+        raise SystemExit(
+            "detector columns disagree between arms, so the passes are not "
+            "commensurable and must not be merged: " + "; ".join(bad))
+    return len(det.ann_id.unique()), len(cols)
+
+
 def main():
     d = pd.read_csv(os.path.join(RES, "per_instance.csv"))
     d["orientation"] = pd.Categorical(d["orientation"], BUCKET_ORDER, ordered=True)
     d["arm"] = d.pose_model
+    ARMS = [a for a in ALL_ARMS if a in set(d.arm)]
+    n_inst, n_cols = check_detector_agreement(d)
 
     # #18's sign-confirmed subsets, unchanged: the visibility proxy AND the
     # annotated shoulder order agree.
@@ -105,6 +130,12 @@ def main():
         "`experiments/rear-view/` (#18). Detector and pose scoring reused "
         "verbatim from `experiments/person-detector/` (#19). CPU, IMAGE mode, "
         "no score threshold applied at record time.\n")
+    say(f"Arms: {', '.join(ARMS)}.\n")
+    say(f"Merge check: every arm saw the same detector box on all {n_inst} "
+        f"instances, across all {n_cols} detector columns. The committed "
+        "results were produced in two passes and concatenated; this is the "
+        "check that makes that legitimate.\n")
+    out["detector_agreement_instances"] = n_inst
 
     inst = d.drop_duplicates("ann_id")
     t = inst.groupby("orientation", observed=True).agg(
@@ -187,42 +218,32 @@ def main():
     out["chirality_swap_detector_confirmed"] = json.loads(t2d.to_json(orient="index"))
 
     # ---- 3. the tests that carry the decision --------------------------
-    say("\n### 2c. Two-proportion z-tests, `aic_coco_self` against "
-        "`body7_official`, on sign-confirmed REAR\n")
+    say("\n### 2c. Two-proportion z-tests, each candidate against "
+        "`body7_official`, on sign-confirmed instances\n")
     say("This is the test the swap decision rests on. A null result means the "
         "swap costs nothing measurable on the failure mode the product cares "
-        "about; it does NOT mean the two checkpoints are identical.\n")
-    tests = {}
-    for label, frame in (("gt_box", gt[gt.confirmed]),
-                         ("rtmdet_ins_tiny", det_sel[det_sel.confirmed])):
-        k1, n1 = counted(frame, "body7_official", "REAR")
-        k2, n2 = counted(frame, "aic_coco_self", "REAR")
-        z, p = two_prop_z(k2, n2, k1, n1)
-        tests[label] = {
-            "body7_official": f"{k1}/{n1}",
-            "aic_coco_self": f"{k2}/{n2}",
-            "z": round(z, 3) if z == z else None,
-            "p": round(p, 4) if p == p else None,
-        }
-    say("```json\n" + json.dumps(tests, indent=2) + "\n```")
-    out["chirality_ztests_rear_confirmed"] = tests
-
-    say("\nSame test on sign-confirmed FRONT, so a rear-specific claim is not "
-        "made from a whole-cohort effect:\n")
-    tests_f = {}
-    for label, frame in (("gt_box", gt[gt.confirmed]),
-                         ("rtmdet_ins_tiny", det_sel[det_sel.confirmed])):
-        k1, n1 = counted(frame, "body7_official", "FRONT")
-        k2, n2 = counted(frame, "aic_coco_self", "FRONT")
-        z, p = two_prop_z(k2, n2, k1, n1)
-        tests_f[label] = {
-            "body7_official": f"{k1}/{n1}",
-            "aic_coco_self": f"{k2}/{n2}",
-            "z": round(z, 3) if z == z else None,
-            "p": round(p, 4) if p == p else None,
-        }
-    say("```json\n" + json.dumps(tests_f, indent=2) + "\n```")
-    out["chirality_ztests_front_confirmed"] = tests_f
+        "about; it does NOT mean the checkpoints are identical.\n")
+    candidates = [a for a in ARMS if a not in ("body7_official", "body7_self")]
+    for bucket in ("REAR", "FRONT"):
+        tests = {}
+        for label, frame in (("gt_box", gt[gt.confirmed]),
+                             ("rtmdet_ins_tiny", det_sel[det_sel.confirmed])):
+            k1, n1 = counted(frame, "body7_official", bucket)
+            row = {"body7_official": f"{k1}/{n1}"}
+            for cand in candidates:
+                k2, n2 = counted(frame, cand, bucket)
+                z, p = two_prop_z(k2, n2, k1, n1)
+                row[cand] = {
+                    "swaps": f"{k2}/{n2}",
+                    "z": round(z, 3) if z == z else None,
+                    "p": round(p, 4) if p == p else None,
+                }
+            tests[label] = row
+        say(f"\n**{bucket}:**\n")
+        say("```json\n" + json.dumps(tests, indent=2) + "\n```")
+        out[f"chirality_ztests_{bucket.lower()}_confirmed"] = tests
+    say("\nFRONT is reported alongside REAR so a rear-specific claim is not "
+        "made from a whole-cohort effect.\n")
 
     # ---- 4. positional error, kept separate ----------------------------
     say("\n## 3. Positional error, kept separate as the map requires\n")

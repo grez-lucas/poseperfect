@@ -1,4 +1,5 @@
 {
+  "detector_agreement_instances": 1675,
   "cohort": {
     "FRONT": {
       "n": 832,
@@ -102,29 +103,37 @@
   "chirality_ztests_rear_confirmed": {
     "gt_box": {
       "body7_official": "3/293",
-      "aic_coco_self": "3/293",
-      "z": 0.0,
-      "p": 1.0
+      "aic_coco_self": {
+        "swaps": "3/293",
+        "z": 0.0,
+        "p": 1.0
+      }
     },
     "rtmdet_ins_tiny": {
       "body7_official": "3/251",
-      "aic_coco_self": "1/251",
-      "z": -1.004,
-      "p": 0.3154
+      "aic_coco_self": {
+        "swaps": "1/251",
+        "z": -1.004,
+        "p": 0.3154
+      }
     }
   },
   "chirality_ztests_front_confirmed": {
     "gt_box": {
       "body7_official": "3/804",
-      "aic_coco_self": "1/804",
-      "z": -1.001,
-      "p": 0.3167
+      "aic_coco_self": {
+        "swaps": "1/804",
+        "z": -1.001,
+        "p": 0.3167
+      }
     },
     "rtmdet_ins_tiny": {
       "body7_official": "2/706",
-      "aic_coco_self": "2/706",
-      "z": 0.0,
-      "p": 1.0
+      "aic_coco_self": {
+        "swaps": "2/706",
+        "z": 0.0,
+        "p": 1.0
+      }
     }
   },
   "oks_corrected_gt_box": {

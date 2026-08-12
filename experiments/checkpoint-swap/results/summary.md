@@ -2,6 +2,10 @@
 
 Cohort, crop and chirality test reused verbatim from `experiments/rear-view/` (#18). Detector and pose scoring reused verbatim from `experiments/person-detector/` (#19). CPU, IMAGE mode, no score threshold applied at record time.
 
+Arms: body7_official, body7_self, aic_coco_self.
+
+Merge check: every arm saw the same detector box on all 1675 instances, across all 5 detector columns. The committed results were produced in two passes and concatenated; this is the check that makes that legitimate.
+
 ## 0. Cohort
 
 | orientation | n | facing_away_by_gt_shoulders | median_bbox_h |
@@ -61,45 +65,59 @@ Sign-confirmed only:
 | FRONT | 0.003 [0.001, 0.010] n=706 | 0.003 [0.001, 0.010] n=706 | 0.003 [0.001, 0.010] n=706 |
 | REAR | 0.012 [0.004, 0.035] n=251 | 0.012 [0.004, 0.035] n=251 | 0.004 [0.001, 0.022] n=251 |
 
-### 2c. Two-proportion z-tests, `aic_coco_self` against `body7_official`, on sign-confirmed REAR
+### 2c. Two-proportion z-tests, each candidate against `body7_official`, on sign-confirmed instances
 
-This is the test the swap decision rests on. A null result means the swap costs nothing measurable on the failure mode the product cares about; it does NOT mean the two checkpoints are identical.
+This is the test the swap decision rests on. A null result means the swap costs nothing measurable on the failure mode the product cares about; it does NOT mean the checkpoints are identical.
+
+
+**REAR:**
 
 ```json
 {
   "gt_box": {
     "body7_official": "3/293",
-    "aic_coco_self": "3/293",
-    "z": 0.0,
-    "p": 1.0
+    "aic_coco_self": {
+      "swaps": "3/293",
+      "z": 0.0,
+      "p": 1.0
+    }
   },
   "rtmdet_ins_tiny": {
     "body7_official": "3/251",
-    "aic_coco_self": "1/251",
-    "z": -1.004,
-    "p": 0.3154
+    "aic_coco_self": {
+      "swaps": "1/251",
+      "z": -1.004,
+      "p": 0.3154
+    }
   }
 }
 ```
 
-Same test on sign-confirmed FRONT, so a rear-specific claim is not made from a whole-cohort effect:
+**FRONT:**
 
 ```json
 {
   "gt_box": {
     "body7_official": "3/804",
-    "aic_coco_self": "1/804",
-    "z": -1.001,
-    "p": 0.3167
+    "aic_coco_self": {
+      "swaps": "1/804",
+      "z": -1.001,
+      "p": 0.3167
+    }
   },
   "rtmdet_ins_tiny": {
     "body7_official": "2/706",
-    "aic_coco_self": "2/706",
-    "z": 0.0,
-    "p": 1.0
+    "aic_coco_self": {
+      "swaps": "2/706",
+      "z": 0.0,
+      "p": 1.0
+    }
   }
 }
 ```
+
+FRONT is reported alongside REAR so a rear-specific claim is not made from a whole-cohort effect.
+
 
 ## 3. Positional error, kept separate as the map requires
 

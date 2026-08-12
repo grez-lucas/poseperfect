@@ -33,22 +33,41 @@ puts the two checkpoints on #18's 1,675-instance cohort and reports the
 **chirality swap rate on rear-facing instances**, which is the number the
 product actually depends on.
 
-Three pose arms over that cohort, each run on two box sources:
+Four pose arms over that cohort, each run on two box sources:
 
-| arm | where the graph came from |
-|---|---|
-| `body7_official` | the official ONNX bundle from `download.openmmlab.com/.../onnx_sdk/`, i.e. **the exact graph #18 and #19 ran** |
-| `body7_self` | the same `body7` weights, exported to ONNX here by MMDeploy |
-| `aic_coco_self` | the `aic-coco` weights, exported to ONNX here by MMDeploy |
+| arm | where the graph came from | supervised pose training data |
+|---|---|---|
+| `body7_official` | the official ONNX bundle from `download.openmmlab.com/.../onnx_sdk/`, i.e. **the exact graph #18 and #19 ran** | AIC, COCO, CrowdPose, MPII, sub-JHMDB, Halpe, PoseTrack18 |
+| `body7_self` | the same `body7` weights, exported to ONNX here by MMDeploy | same |
+| `aic_coco_self` | the `aic-coco` weights, exported to ONNX here by MMDeploy | AIC + COCO |
+| `coco_self` | the `simcc-coco` weights, exported to ONNX here by MMDeploy | **COCO alone** (backbone pretraining is `pt-aic-coco`) |
 
 Box sources: `gt_box` (COCO's annotated box, #18's condition) and
 `rtmdet_ins_tiny` (the detector #19 chose, #19's condition).
 
-**`body7_self` is the control and it is not optional.** `aic-coco` ships no
-official ONNX, so its graph has to be produced here; without a self-exported
-`body7` arm there would be no way to tell a checkpoint difference from an
-export artefact. If `body7_self` reproduces `body7_official`, the `aic_coco_self`
-number is about the checkpoint.
+**`body7_self` is the control and it is not optional.** Neither `aic-coco` nor
+`simcc-coco` ships an official ONNX, so their graphs have to be produced here;
+without a self-exported `body7` arm there would be no way to tell a checkpoint
+difference from an export artefact. If `body7_self` reproduces `body7_official`,
+the other two arms' numbers are about their checkpoints.
+
+**On `coco_self`, because the name is easy to misread.** MMPose's naming is
+`simcc-<supervised pose training set>` and `pt-<backbone pretraining set>`. So
+`rtmpose-m_simcc-coco_pt-aic-coco` is keypoint-supervised on COCO alone, with a
+backbone pretrained on AIC+COCO. It is published in MMPose's MAIN COCO model
+zoo (`configs/body_2d_keypoint/rtmpose/coco/rtmpose_coco.md`), not in
+`projects/rtmpose/README.md`, which is why #19 concluded no COCO-only RTMPose-m
+existed.
+
+## How the committed results were produced
+
+`run.sh` sweeps all four arms in one pass. The committed `results/` were
+produced in **two** passes - three arms, then `coco_self` alone - and
+concatenated. That is equivalent, and the equivalence is checkable rather than
+asserted: the arms are independent per instance, and the detector runs once per
+instance on a deterministic crop, so the second pass reproduces the identical
+box. `analyse.py` verifies it and refuses to merge if the detector columns
+disagree.
 
 ## Files
 
