@@ -16,7 +16,7 @@ class PosePerfectApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF1B1B1F),
-          brightness: Brightness.dark,
+          brightness: Brightness.light,
         ),
       ),
       // Issue #8 only: the whole app is the camera check until the pipeline is
