@@ -1,0 +1,49 @@
+name: Checks
+
+# Issue #6 records the inward dependency rule as enforced by
+# `depend_on_referenced_packages` "as a CI error". This workflow is that CI.
+# Without it the lint is set to `error` in every analysis_options.yaml and
+# nothing ever reads it.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          # Kept in step with builder.json, so the analyzer and the macOS build
+          # runner never disagree about the SDK.
+          flutter-version: 3.44.9
+          channel: stable
+          cache: true
+
+      # Resolves the whole pub workspace from the root, producing the single
+      # root pubspec.lock.
+      - name: Resolve the workspace
+        run: flutter pub get
+
+      - name: Verify the lockfile is up to date
+        run: |
+          if ! git diff --exit-code pubspec.lock; then
+            echo "::error::pubspec.lock changed during 'flutter pub get'. Commit the updated lockfile."
+            exit 1
+          fi
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Test packages/domain
+        run: dart test
+        working-directory: packages/domain

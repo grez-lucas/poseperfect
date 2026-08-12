@@ -1,0 +1,17 @@
+{
+  "project": "poseperfect",
+  "platform": "ios",
+  "github": {
+    "owner": "grez-lucas",
+    "repo": "poseperfect"
+  },
+  "ios": {
+    "path": "ios"
+  },
+  "flutter": {
+    "version": "3.44.9",
+    "watch": {}
+  },
+  "reactNative": {},
+  "mobai": {}
+}

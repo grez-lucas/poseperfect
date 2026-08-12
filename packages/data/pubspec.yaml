@@ -1,0 +1,15 @@
+name: poseperfect_data
+description: Repository implementations, persistence and the pose engine adapters.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  poseperfect_domain: ^0.1.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6
