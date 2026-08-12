@@ -105,12 +105,77 @@ README are the private-repo case and do not apply.
 
 ## Measurements
 
-Recorded as they are taken, on the ticket. Nothing is filled in from
-inference.
+Recorded as they are taken. Nothing is filled in from inference.
 
 | Measurement | Value |
 |---|---|
-| Cold `builder ios build` wall clock | not yet measured |
+| Cold `builder ios build` wall clock | **4m16s** (run [31628984414](https://github.com/grez-lucas/poseperfect/actions/runs/31628984414), 2026-08-12, `build` job 4m10s of it) |
+| Unsigned debug IPA size | **30.4 MB** |
 | Warm rebuild wall clock | not yet measured |
 | `flutter attach` hot reload works | not yet attempted |
 | Certificate `notAfter` | not yet read |
+
+The 30-minute `timeout-minutes` that ios-builder issue #3 reported hitting was
+not close: the first cold build, with no DerivedData cache and no Pods cache,
+finished in a seventh of it.
+
+## Device, as detected
+
+MobAI 2.8.0 on Pop!_OS sees the phone over USB without any host-side
+libimobiledevice install, because it bundles its own usbmuxd stack:
+
+```
+id           00008120-00092D4E2270201E
+name         Lucas's iPhone
+model        iPhone15,3
+osVersion    26.6
+transport    USB
+state        ready
+```
+
+iOS 26.6 is far above the 16.0 floor, so the deployment target is not a
+constraint on this device.
+
+**Known Linux defect, not blocking.** MobAI repeatedly fails to bring up its
+NCM network interface:
+
+```
+NCM interface stopped ... failed activating config for device ...
+configuration id 5 not found in the descriptor of the device.
+Available config ids: [1 2 3 4]
+```
+
+This is the "you are among the first to run this on Linux" risk from #2
+materialising (the v2.8.0 Linux tarball had 0 downloads when we fetched it).
+NCM is an optional network-over-USB transport; usbmuxd device access, which is
+what signing and install use, works regardless.
+
+**MobAI writes to `~/.claude.json` on first launch**, adding a global `mobai`
+MCP server entry pointed at `http://127.0.0.1:8686/mcp`, and starts a web proxy
+to `https://app.mobai.run`. Neither is requested nor announced. Kept
+deliberately - it is a device-automation surface that may be useful when
+testing capture flows on device.
+
+## Signing, and why it is not automated here
+
+The signing call is `POST /api/v1/devices/{id}/install-app` with
+`{path, resign: true, appleId, password}`. There is **no 2FA field**: MobAI
+reads the 2FA code from stdin, so the call only completes from an interactive
+terminal. Automating it would mean handling an Apple ID password in a script,
+which is both a bad idea and blocked by this repo's agent permissions.
+
+**Run it yourself**, from an interactive shell, and let it prompt:
+
+```
+builder dev flutter
+```
+
+Answer `Yes` at the `Resign app` prompt, then the Apple ID, password and 2FA
+code. First install also needs a tap on the phone: Settings > General >
+VPN & Device Management > trust the developer.
+
+**Accepted risk, recorded 2026-08-12.** The Apple ID in use is a real account
+on the aynitech.com domain, not the throwaway #2 recommended. Lucas was shown
+the certificate-revocation and Apple-ID-lockout consequences and chose to
+proceed. Self-hosted anisette is running, which removes the lockout vector #2
+rated most likely.
