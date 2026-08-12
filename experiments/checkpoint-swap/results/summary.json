@@ -36,68 +36,80 @@
     "FRONT": {
       "body7_official": "0.005 [0.002, 0.012] n=832",
       "body7_self": "0.005 [0.002, 0.012] n=832",
-      "aic_coco_self": "0.001 [0.000, 0.007] n=832"
+      "aic_coco_self": "0.001 [0.000, 0.007] n=832",
+      "coco_self": "0.004 [0.001, 0.011] n=832"
     },
     "OBLIQUE": {
       "body7_official": "0.026 [0.014, 0.047] n=384",
       "body7_self": "0.026 [0.014, 0.047] n=384",
-      "aic_coco_self": "0.031 [0.018, 0.054] n=384"
+      "aic_coco_self": "0.031 [0.018, 0.054] n=384",
+      "coco_self": "0.031 [0.018, 0.054] n=384"
     },
     "PROFILE": {
       "body7_official": "0.000 [0.000, 0.038] n=96",
       "body7_self": "0.000 [0.000, 0.038] n=96",
-      "aic_coco_self": "0.000 [0.000, 0.038] n=96"
+      "aic_coco_self": "0.000 [0.000, 0.038] n=96",
+      "coco_self": "0.010 [0.002, 0.057] n=96"
     },
     "REAR": {
       "body7_official": "0.019 [0.009, 0.039] n=363",
       "body7_self": "0.019 [0.009, 0.039] n=363",
-      "aic_coco_self": "0.028 [0.015, 0.050] n=363"
+      "aic_coco_self": "0.028 [0.015, 0.050] n=363",
+      "coco_self": "0.036 [0.021, 0.060] n=363"
     }
   },
   "chirality_swap_gt_box_confirmed": {
     "FRONT": {
       "body7_official": "0.004 [0.001, 0.011] n=804",
       "body7_self": "0.004 [0.001, 0.011] n=804",
-      "aic_coco_self": "0.001 [0.000, 0.007] n=804"
+      "aic_coco_self": "0.001 [0.000, 0.007] n=804",
+      "coco_self": "0.002 [0.001, 0.009] n=804"
     },
     "REAR": {
       "body7_official": "0.010 [0.003, 0.030] n=293",
       "body7_self": "0.010 [0.003, 0.030] n=293",
-      "aic_coco_self": "0.010 [0.003, 0.030] n=293"
+      "aic_coco_self": "0.010 [0.003, 0.030] n=293",
+      "coco_self": "0.014 [0.005, 0.035] n=293"
     }
   },
   "chirality_swap_detector": {
     "FRONT": {
       "body7_official": "0.003 [0.001, 0.010] n=730",
       "body7_self": "0.003 [0.001, 0.010] n=730",
-      "aic_coco_self": "0.003 [0.001, 0.010] n=730"
+      "aic_coco_self": "0.003 [0.001, 0.010] n=730",
+      "coco_self": "0.003 [0.001, 0.010] n=730"
     },
     "OBLIQUE": {
       "body7_official": "0.033 [0.018, 0.057] n=337",
       "body7_self": "0.033 [0.018, 0.057] n=337",
-      "aic_coco_self": "0.030 [0.016, 0.054] n=337"
+      "aic_coco_self": "0.030 [0.016, 0.054] n=337",
+      "coco_self": "0.030 [0.016, 0.054] n=337"
     },
     "PROFILE": {
       "body7_official": "0.000 [-0.000, 0.046] n=80",
       "body7_self": "0.000 [-0.000, 0.046] n=80",
-      "aic_coco_self": "0.000 [-0.000, 0.046] n=80"
+      "aic_coco_self": "0.000 [-0.000, 0.046] n=80",
+      "coco_self": "0.000 [-0.000, 0.046] n=80"
     },
     "REAR": {
       "body7_official": "0.020 [0.009, 0.042] n=304",
       "body7_self": "0.020 [0.009, 0.042] n=304",
-      "aic_coco_self": "0.016 [0.007, 0.038] n=304"
+      "aic_coco_self": "0.016 [0.007, 0.038] n=304",
+      "coco_self": "0.023 [0.011, 0.047] n=304"
     }
   },
   "chirality_swap_detector_confirmed": {
     "FRONT": {
       "body7_official": "0.003 [0.001, 0.010] n=706",
       "body7_self": "0.003 [0.001, 0.010] n=706",
-      "aic_coco_self": "0.003 [0.001, 0.010] n=706"
+      "aic_coco_self": "0.003 [0.001, 0.010] n=706",
+      "coco_self": "0.003 [0.001, 0.010] n=706"
     },
     "REAR": {
       "body7_official": "0.012 [0.004, 0.035] n=251",
       "body7_self": "0.012 [0.004, 0.035] n=251",
-      "aic_coco_self": "0.004 [0.001, 0.022] n=251"
+      "aic_coco_self": "0.004 [0.001, 0.022] n=251",
+      "coco_self": "0.012 [0.004, 0.035] n=251"
     }
   },
   "chirality_ztests_rear_confirmed": {
@@ -107,6 +119,11 @@
         "swaps": "3/293",
         "z": 0.0,
         "p": 1.0
+      },
+      "coco_self": {
+        "swaps": "4/293",
+        "z": 0.38,
+        "p": 0.7038
       }
     },
     "rtmdet_ins_tiny": {
@@ -115,6 +132,11 @@
         "swaps": "1/251",
         "z": -1.004,
         "p": 0.3154
+      },
+      "coco_self": {
+        "swaps": "3/251",
+        "z": 0.0,
+        "p": 1.0
       }
     }
   },
@@ -125,11 +147,21 @@
         "swaps": "1/804",
         "z": -1.001,
         "p": 0.3167
+      },
+      "coco_self": {
+        "swaps": "2/804",
+        "z": -0.448,
+        "p": 0.6542
       }
     },
     "rtmdet_ins_tiny": {
       "body7_official": "2/706",
       "aic_coco_self": {
+        "swaps": "2/706",
+        "z": 0.0,
+        "p": 1.0
+      },
+      "coco_self": {
         "swaps": "2/706",
         "z": 0.0,
         "p": 1.0
@@ -140,110 +172,130 @@
     "FRONT": {
       "body7_official": 0.9500429336,
       "body7_self": 0.9500402122,
-      "aic_coco_self": 0.9555437239
+      "aic_coco_self": 0.9555437239,
+      "coco_self": 0.9511731485
     },
     "OBLIQUE": {
       "body7_official": 0.9248970575,
       "body7_self": 0.9248979556,
-      "aic_coco_self": 0.9315108464
+      "aic_coco_self": 0.9315108464,
+      "coco_self": 0.924330656
     },
     "PROFILE": {
       "body7_official": 0.9291542317,
       "body7_self": 0.9291542317,
-      "aic_coco_self": 0.9320064226
+      "aic_coco_self": 0.9320064226,
+      "coco_self": 0.9267615758
     },
     "REAR": {
       "body7_official": 0.9297164773,
       "body7_self": 0.9297164773,
-      "aic_coco_self": 0.9325073676
+      "aic_coco_self": 0.9325073676,
+      "coco_self": 0.9263509008
     }
   },
   "oks_corrected_detector": {
     "FRONT": {
       "body7_official": 0.9536284444,
       "body7_self": 0.9536284444,
-      "aic_coco_self": 0.9576235214
+      "aic_coco_self": 0.9576235214,
+      "coco_self": 0.9539649202
     },
     "OBLIQUE": {
       "body7_official": 0.9255898789,
       "body7_self": 0.9255898789,
-      "aic_coco_self": 0.9344700955
+      "aic_coco_self": 0.9344700955,
+      "coco_self": 0.9269578253
     },
     "PROFILE": {
       "body7_official": 0.9299565274,
       "body7_self": 0.9299565274,
-      "aic_coco_self": 0.9339833143
+      "aic_coco_self": 0.9339833143,
+      "coco_self": 0.9253188534
     },
     "REAR": {
       "body7_official": 0.9357485769,
       "body7_self": 0.9357485769,
-      "aic_coco_self": 0.9387819438
+      "aic_coco_self": 0.9387819438,
+      "coco_self": 0.9326867076
     }
   },
   "pck02_corrected_gt_box": {
     "FRONT": {
       "body7_official": 0.9919315214,
       "body7_self": 0.9919315214,
-      "aic_coco_self": 0.9937758729
+      "aic_coco_self": 0.9937758729,
+      "coco_self": 0.9912738853
     },
     "OBLIQUE": {
       "body7_official": 0.9803839245,
       "body7_self": 0.9803839245,
-      "aic_coco_self": 0.9850278194
+      "aic_coco_self": 0.9850278194,
+      "coco_self": 0.9758378774
     },
     "PROFILE": {
       "body7_official": 0.9828175297,
       "body7_self": 0.9828175297,
-      "aic_coco_self": 0.9824614043
+      "aic_coco_self": 0.9824614043,
+      "coco_self": 0.9769395535
     },
     "REAR": {
       "body7_official": 0.9765496594,
       "body7_self": 0.9765496594,
-      "aic_coco_self": 0.9798434195
+      "aic_coco_self": 0.9798434195,
+      "coco_self": 0.9737354167
     }
   },
   "oks_raw_gt_box": {
     "FRONT": {
       "body7_official": 0.9501282856,
       "body7_self": 0.9501255642,
-      "aic_coco_self": 0.95520333
+      "aic_coco_self": 0.95520333,
+      "coco_self": 0.9508755148
     },
     "OBLIQUE": {
       "body7_official": 0.9240984908,
       "body7_self": 0.9240993888,
-      "aic_coco_self": 0.9292576661
+      "aic_coco_self": 0.9292576661,
+      "coco_self": 0.9230516814
     },
     "PROFILE": {
       "body7_official": 0.9291542317,
       "body7_self": 0.9291542317,
-      "aic_coco_self": 0.9320064226
+      "aic_coco_self": 0.9320064226,
+      "coco_self": 0.921861562
     },
     "REAR": {
       "body7_official": 0.920635125,
       "body7_self": 0.920635125,
-      "aic_coco_self": 0.9246401975
+      "aic_coco_self": 0.9246401975,
+      "coco_self": 0.9144648537
     }
   },
   "usable_capture_rate": {
     "FRONT": {
       "body7_official": "0.875 [0.851, 0.896] n=832",
       "body7_self": "0.875 [0.851, 0.896] n=832",
-      "aic_coco_self": "0.875 [0.851, 0.896] n=832"
+      "aic_coco_self": "0.875 [0.851, 0.896] n=832",
+      "coco_self": "0.875 [0.851, 0.896] n=832"
     },
     "OBLIQUE": {
       "body7_official": "0.849 [0.810, 0.881] n=384",
       "body7_self": "0.849 [0.810, 0.881] n=384",
-      "aic_coco_self": "0.852 [0.813, 0.884] n=384"
+      "aic_coco_self": "0.852 [0.813, 0.884] n=384",
+      "coco_self": "0.852 [0.813, 0.884] n=384"
     },
     "PROFILE": {
       "body7_official": "0.833 [0.746, 0.895] n=96",
       "body7_self": "0.833 [0.746, 0.895] n=96",
-      "aic_coco_self": "0.833 [0.746, 0.895] n=96"
+      "aic_coco_self": "0.833 [0.746, 0.895] n=96",
+      "coco_self": "0.833 [0.746, 0.895] n=96"
     },
     "REAR": {
       "body7_official": "0.821 [0.778, 0.857] n=363",
       "body7_self": "0.821 [0.778, 0.857] n=363",
-      "aic_coco_self": "0.824 [0.781, 0.859] n=363"
+      "aic_coco_self": "0.824 [0.781, 0.859] n=363",
+      "coco_self": "0.818 [0.775, 0.854] n=363"
     }
   }
 }

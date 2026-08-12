@@ -24,6 +24,13 @@
       "checkpoint_bytes": 54536690,
       "onnx": "/home/luken/.cache/poseperfect-checkpoint-swap/onnx/aic-coco/end2end.onnx",
       "onnx_bytes": 54369767
+    },
+    "coco_self": {
+      "checkpoint": "rtmpose-m_simcc-coco_pt-aic-coco_420e-256x192-d8dd5ca4_20230127.pth",
+      "checkpoint_sha256": "929f00f2d84764aa0297decf13a84556642e43cbf5fca8cfb16e7326d92dfd97",
+      "checkpoint_bytes": 54535816,
+      "onnx": "/home/luken/.cache/poseperfect-checkpoint-swap/onnx/coco/end2end.onnx",
+      "onnx_bytes": 54369767
     }
   },
   "box_sources": [
@@ -38,5 +45,22 @@
   "hardware": "CPU only, Linux, Python 3.10",
   "seconds": 231.1,
   "shards": 5,
-  "timing_note": "wall clock under a sharded run is contended and is not a clean timing; see results/onnx_cost.json"
+  "timing_note": "wall clock under a sharded run is contended and is not a clean timing; see results/onnx_cost.json",
+  "passes": [
+    {
+      "arms": [
+        "aic_coco_self",
+        "body7_official",
+        "body7_self"
+      ],
+      "seconds": 231.1
+    },
+    {
+      "arms": [
+        "coco_self"
+      ],
+      "seconds": 450.1
+    }
+  ],
+  "merge_note": "produced in more than one pass and concatenated; analyse.py verifies that every arm saw the identical detector box before reporting"
 }

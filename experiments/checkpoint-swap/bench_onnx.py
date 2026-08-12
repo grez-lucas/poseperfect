@@ -49,6 +49,7 @@ def main():
         "body7_official": OFFICIAL_ONNX,
         "body7_self": os.path.join(CACHE, "onnx", "body7", "end2end.onnx"),
         "aic_coco_self": os.path.join(CACHE, "onnx", "aic-coco", "end2end.onnx"),
+        "coco_self": os.path.join(CACHE, "onnx", "coco", "end2end.onnx"),
     }
 
     report = {"note": "x86-64 Linux CPU, ONNX Runtime "
