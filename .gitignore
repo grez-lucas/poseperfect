@@ -1,0 +1,14 @@
+# Dart / Flutter, workspace-wide. The per-package .gitignore files that
+# `flutter create` generates only cover their own directory.
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+
+# Agent worktrees and machine-local Claude Code settings.
+.claude/worktrees/
+.claude/settings.local.json
+
+# ios-builder pulls the IPA down to here.
+/dist/
