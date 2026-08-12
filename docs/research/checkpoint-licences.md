@@ -175,3 +175,94 @@ The dataset's own page, `challenger.ai/dataset/keypoint` (archived 2019-06-23), 
 **The consequence for the checkpoint choice is direct: `aic-coco` does not escape the problem, it relocates it.** Swapping `body7` for `aic-coco` drops MPII, PoseTrack18, CrowdPose, sub-JHMDB and Halpe, and keeps AI Challenger, whose own entrant agreement restricts the data to *"non-commercial purposes such as scientific research or classroom teaching"*. That is a smaller surface, not a clean one.
 
 ---
+
+## 4. Pricing the swap: what `aic-coco` actually costs on rear views
+
+`aic-coco` publishes **75.8 AP on COCO against `body7`'s 74.9**, so on paper the swap is free. **Published COCO AP is a whole-dataset average over a cohort that is mostly front-facing, and #18 exists precisely because that average hides the rear view.** Nobody had measured the swap candidate on the failure mode the product depends on. This does.
+
+Everything below is `experiments/checkpoint-swap/`, on #18's 1,675-instance COCO val2017 cohort, with the crop, the orientation proxy and the chirality test reused verbatim, and the detector, pose scoring and statistics reused verbatim from #19.
+
+### 4.1 The export, and why a control was mandatory
+
+**VERIFIED by doing it.** `aic-coco` ships `.pth` only - MMPose's `projects/rtmpose/README.md` shows an `onnx` link for every `body7` row and none for any `aic-coco` row. So the graph had to be produced here, with MMDeploy, following the invocation MMPose itself documents:
+
+```
+python tools/deploy.py \
+    configs/mmpose/pose-detection_simcc_onnxruntime_dynamic.py \
+    ../mmpose/projects/rtmpose/rtmpose/body_2d_keypoint/rtmpose-m_8xb256-420e_coco-256x192.py \
+    https://download.openmmlab.com/mmpose/v1/projects/rtmposev1/rtmpose-m_simcc-aic-coco_pt-aic-coco_420e-256x192-63eb25f7_20230126.pth \
+    demo/resources/human-pose.jpg \
+    --work-dir rtmpose-ort/rtmpose-m --device cpu --show --dump-info
+```
+
+That is upstream's own worked example, and upstream's own worked example happens to use the `aic-coco` checkpoint. Same MMDeploy v1.3.1 clone `experiments/person-detector/export_onnx.sh` used for #19.
+
+**A self-exported graph is not automatically the published graph, so `body7` was exported the same way and run as a third arm.** `body7` ships both a `.pth` and an official ONNX bundle, which makes it the control:
+
+| | |
+|---|---|
+| rows compared | 3,350 |
+| max abs difference in corrected OKS | 2.264e-03 |
+| mean abs difference in corrected OKS | 7.788e-07 |
+| instances where the chirality verdict differs | **0** |
+
+**The self-exported `body7` graph is the published `body7` graph.** So any difference `aic-coco` shows is a property of its weights, not of the export. The reverse check rules out the other failure mode: `aic_coco_self` differs from `body7_official` by mean 1.405e-02 and max 8.860e-01 corrected OKS, so these are genuinely two different sets of weights and not one file under two names.
+
+**And the anchor holds.** `body7_official` reproduces #18 and #19 exactly on the same instances: sign-confirmed REAR swap **3/293 = 1.0%** on ground-truth boxes, **3/251 = 1.2%** on RTMDet-Ins-tiny boxes. Identical to `rear-view-experiment.md` and `person-detector.md`. That is the check that makes this sweep commensurable with theirs.
+
+### 4.2 The number the ticket asked for
+
+**VERIFIED. There is no measurable rear-view cost. On the deployable condition `aic-coco` is nominally better, and the difference is not significant.**
+
+Chirality swap rate, sign-confirmed instances only - the subset #18's and #19's verdicts quoted:
+
+| condition | orientation | `body7` (#18/#19) | `aic-coco` | z | p |
+|---|---|---|---|---|---|
+| ground-truth box | **REAR** | **1.0% (3/293)** | **1.0% (3/293)** | 0.000 | 1.000 |
+| ground-truth box | FRONT | 0.4% (3/804) | 0.1% (1/804) | -1.001 | 0.317 |
+| RTMDet-Ins-tiny box | **REAR** | **1.2% (3/251)** | **0.4% (1/251)** | -1.004 | 0.315 |
+| RTMDet-Ins-tiny box | FRONT | 0.3% (2/706) | 0.3% (2/706) | 0.000 | 1.000 |
+
+**So the headline is: 1.0% -> 1.0% on ground-truth boxes, 1.2% -> 0.4% on real detector boxes.** Both null. The FRONT rows are shown so a rear-specific claim is not being made from a whole-cohort effect; they are null too.
+
+**The honest counterweight, reported because cherry-picking the confirmed subset would be exactly the wrong move.** On the *full* REAR bucket, which includes instances where the visibility proxy and the annotated shoulder order disagree, the direction is not uniform:
+
+| orientation | `body7_official` | `body7_self` | `aic_coco_self` |
+|---|---|---|---|
+| FRONT | 0.005 [0.002, 0.012] n=832 | 0.005 [0.002, 0.012] n=832 | 0.001 [0.000, 0.007] n=832 |
+| OBLIQUE | 0.026 [0.014, 0.047] n=384 | 0.026 [0.014, 0.047] n=384 | 0.031 [0.018, 0.054] n=384 |
+| PROFILE | 0.000 [0.000, 0.038] n=96 | 0.000 [0.000, 0.038] n=96 | 0.000 [0.000, 0.038] n=96 |
+| **REAR** | **0.019 [0.009, 0.039] n=363** | 0.019 [0.009, 0.039] n=363 | **0.028 [0.015, 0.050] n=363** |
+
+On ground-truth boxes and the unfiltered REAR bucket, `aic-coco` is 2.8% against `body7`'s 1.9%. **Every interval in that table overlaps, and the same comparison on the detector boxes runs the other way (1.6% vs 2.0%).** The defensible statement is that the two checkpoints are indistinguishable on rear chirality at this cohort size, not that either is better.
+
+### 4.3 Positional error, kept separate as the map requires
+
+**VERIFIED. `aic-coco` is marginally better at every orientation, on both box sources.** Mean OKS after correcting chirality:
+
+| orientation | ground-truth box, `body7` | ground-truth box, `aic-coco` | detector box, `body7` | detector box, `aic-coco` |
+|---|---|---|---|---|
+| FRONT | 0.9500 | **0.9555** | 0.9536 | **0.9576** |
+| OBLIQUE | 0.9249 | **0.9315** | 0.9256 | **0.9345** |
+| PROFILE | 0.9292 | **0.9320** | 0.9300 | **0.9340** |
+| REAR | 0.9297 | **0.9325** | 0.9357 | **0.9388** |
+
+PCK@0.2 moves the same way (REAR 0.9765 -> 0.9798 on ground-truth boxes). **This is consistent with the published 74.9 -> 75.8 AP, and it extends it to the rear view, which the published number could not.**
+
+Composite usable-capture rate, #18's definition, over the whole detector arm without conditioning on correct selection: REAR 0.821 for `body7` against 0.824 for `aic-coco`. Unchanged.
+
+### 4.4 The costs that are not accuracy
+
+**VERIFIED.** The two graphs are byte-identical in size, because they are the same architecture:
+
+| | bytes | MiB |
+|---|---|---|
+| `body7` self-exported `end2end.onnx` | 54,369,767 | 51.85 |
+| `aic-coco` self-exported `end2end.onnx` | 54,369,767 | 51.85 |
+| `body7` official ONNX bundle (what #19 measured) | 54,330,655 | 51.81 |
+
+**So the swap costs nothing in IPA size.** Both graphs are `ai.onnx` opset 11, domain `''` only, no custom ops, input `input [batch, 3, 256, 192]`, outputs `simcc_x` and `simcc_y` - the same signature #19 recorded for the official bundle, so nothing changes for `flutter_onnxruntime`.
+
+**One provenance oddity, recorded rather than smoothed over.** OpenMMLab tags its checkpoint filenames with an 8-hex digest. `body7`'s matches the file served: SHA256 `e48f03d0cfe1285ee8b6d3457ac3ce33a4594a92b080053ab1ec4a7e300975f2` under a name saying `e48f03d0`. **`aic-coco`'s does not**: the served file is `5e55be2a03f6e5dcd14d088afc4ae5afe94a4f9de93c22e5deb725ad0eee899d` under a name saying `63eb25f7`, its `Last-Modified` is 2023-04-18 although the name says `20230126`, and `Content-Length` matches the download exactly so it is not a truncated fetch. **The `aic-coco` file currently served is not the file that was published under that name.** It works, it exports, and it measures as above - but anyone relying on the filename as an integrity check should know it does not hold. All three SHA256s are recorded in `results/run_meta.json`.
+
+---
