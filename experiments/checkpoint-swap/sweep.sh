@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# PROTOTYPE - throwaway. Runs the ticket #20 sweep as N concurrent shards and
+# concatenates them into results/per_instance.csv.
+#
+# Same scheme as ../person-detector/sweep.sh. The sweep is embarrassingly
+# parallel over instances and CPU-bound, so a single process leaves most of the
+# box idle. Sharding costs one thing and it is recorded rather than hidden: any
+# wall-clock timing from a sharded run is contended and is not a clean timing.
+# Cost claims come from bench_onnx.py, which runs alone.
+#
+# Usage: ./sweep.sh [nshards] [threads] [arms] [outdir]
+#
+# `arms` and `outdir` exist so a single arm can be swept separately and its
+# rows concatenated into an existing per_instance.csv. That is sound because
+# the arms are independent per instance and the detector box is deterministic
+# for a given crop, so a second pass reproduces the identical box; `analyse.py`
+# does not rely on the passes being simultaneous. See the README.
+set -euo pipefail
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PY="${HERE}/../person-detector/.venv310/bin/python"
+N="${1:-5}"
+THREADS="${2:-4}"
+ARMS="${3:-body7_official,body7_self,aic_coco_self,coco_self}"
+RES="${4:-${HERE}/results}"
+
+mkdir -p "${RES}"
+# Shard CSVs are NOT deleted: run_experiment.py resumes from them.
+rm -f "${RES}"/run_meta.shard*.json
+
+pids=()
+for i in $(seq 0 $((N - 1))); do
+  OMP_NUM_THREADS="${THREADS}" MKL_NUM_THREADS="${THREADS}" \
+    "${PY}" "${HERE}/run_experiment.py" --shard "${i}" --nshards "${N}" \
+    --arms "${ARMS}" --out "${RES}" \
+    > "${RES}/shard${i}.log" 2>&1 &
+  pids+=($!)
+done
+echo "launched ${N} shards: ${pids[*]}"
+for p in "${pids[@]}"; do wait "${p}"; done
+
+echo "==> concatenating"
+"${PY}" - "${RES}" "${N}" <<'PY'
+import csv, glob, json, os, sys
+res, n = sys.argv[1], int(sys.argv[2])
+rows, fields = [], None
+for i in range(n):
+    with open(os.path.join(res, f"per_instance.shard{i}.csv")) as f:
+        r = csv.DictReader(f)
+        fields = r.fieldnames
+        rows.extend(list(r))
+rows.sort(key=lambda x: (int(x["ann_id"]), x["pose_model"], x["box_source"]))
+with open(os.path.join(res, "per_instance.csv"), "w", newline="") as f:
+    w = csv.DictWriter(f, fieldnames=fields)
+    w.writeheader()
+    w.writerows(rows)
+
+metas = [json.load(open(os.path.join(res, f"run_meta.shard{i}.json")))
+         for i in range(n)]
+meta = dict(metas[0])
+meta["cohort_size"] = sum(m["cohort_size"] for m in metas)
+meta["shards"] = n
+meta["seconds"] = max(m["seconds"] for m in metas)
+meta["timing_note"] = ("wall clock under a sharded run is contended and is "
+                       "not a clean timing; see results/onnx_cost.json")
+json.dump(meta, open(os.path.join(res, "run_meta.json"), "w"), indent=2)
+print(f"{len(rows)} rows over {meta['cohort_size']} instances")
+PY
+
+rm -f "${RES}"/per_instance.shard*.csv "${RES}"/run_meta.shard*.json "${RES}"/shard*.log

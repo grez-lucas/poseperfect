@@ -1,0 +1,225 @@
+{
+  "note": "x86-64 Linux CPU, ONNX Runtime 1.19.2. NOT an iOS measurement.",
+  "models": {
+    "body7_official": {
+      "path": "/home/luken/.cache/rtmlib/hub/checkpoints/rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504.onnx",
+      "bytes": 54330655,
+      "mib": 51.81,
+      "threads": {
+        "1": {
+          "input_shapes": {
+            "input": [
+              "batch",
+              3,
+              256,
+              192
+            ]
+          },
+          "output_names": [
+            "simcc_x",
+            "simcc_y"
+          ],
+          "median_ms": 44.0,
+          "p90_ms": 48.4
+        },
+        "2": {
+          "input_shapes": {
+            "input": [
+              "batch",
+              3,
+              256,
+              192
+            ]
+          },
+          "output_names": [
+            "simcc_x",
+            "simcc_y"
+          ],
+          "median_ms": 24.7,
+          "p90_ms": 25.3
+        },
+        "4": {
+          "input_shapes": {
+            "input": [
+              "batch",
+              3,
+              256,
+              192
+            ]
+          },
+          "output_names": [
+            "simcc_x",
+            "simcc_y"
+          ],
+          "median_ms": 14.6,
+          "p90_ms": 15.2
+        }
+      }
+    },
+    "body7_self": {
+      "path": "/home/luken/.cache/poseperfect-checkpoint-swap/onnx/body7/end2end.onnx",
+      "bytes": 54369767,
+      "mib": 51.85,
+      "threads": {
+        "1": {
+          "input_shapes": {
+            "input": [
+              "batch",
+              3,
+              256,
+              192
+            ]
+          },
+          "output_names": [
+            "simcc_x",
+            "simcc_y"
+          ],
+          "median_ms": 45.9,
+          "p90_ms": 47.3
+        },
+        "2": {
+          "input_shapes": {
+            "input": [
+              "batch",
+              3,
+              256,
+              192
+            ]
+          },
+          "output_names": [
+            "simcc_x",
+            "simcc_y"
+          ],
+          "median_ms": 23.6,
+          "p90_ms": 25.5
+        },
+        "4": {
+          "input_shapes": {
+            "input": [
+              "batch",
+              3,
+              256,
+              192
+            ]
+          },
+          "output_names": [
+            "simcc_x",
+            "simcc_y"
+          ],
+          "median_ms": 16.1,
+          "p90_ms": 19.7
+        }
+      }
+    },
+    "aic_coco_self": {
+      "path": "/home/luken/.cache/poseperfect-checkpoint-swap/onnx/aic-coco/end2end.onnx",
+      "bytes": 54369767,
+      "mib": 51.85,
+      "threads": {
+        "1": {
+          "input_shapes": {
+            "input": [
+              "batch",
+              3,
+              256,
+              192
+            ]
+          },
+          "output_names": [
+            "simcc_x",
+            "simcc_y"
+          ],
+          "median_ms": 34.1,
+          "p90_ms": 34.9
+        },
+        "2": {
+          "input_shapes": {
+            "input": [
+              "batch",
+              3,
+              256,
+              192
+            ]
+          },
+          "output_names": [
+            "simcc_x",
+            "simcc_y"
+          ],
+          "median_ms": 22.8,
+          "p90_ms": 23.9
+        },
+        "4": {
+          "input_shapes": {
+            "input": [
+              "batch",
+              3,
+              256,
+              192
+            ]
+          },
+          "output_names": [
+            "simcc_x",
+            "simcc_y"
+          ],
+          "median_ms": 15.5,
+          "p90_ms": 16.2
+        }
+      }
+    },
+    "coco_self": {
+      "path": "/home/luken/.cache/poseperfect-checkpoint-swap/onnx/coco/end2end.onnx",
+      "bytes": 54369767,
+      "mib": 51.85,
+      "threads": {
+        "1": {
+          "input_shapes": {
+            "input": [
+              "batch",
+              3,
+              256,
+              192
+            ]
+          },
+          "output_names": [
+            "simcc_x",
+            "simcc_y"
+          ],
+          "median_ms": 34.1,
+          "p90_ms": 37.2
+        },
+        "2": {
+          "input_shapes": {
+            "input": [
+              "batch",
+              3,
+              256,
+              192
+            ]
+          },
+          "output_names": [
+            "simcc_x",
+            "simcc_y"
+          ],
+          "median_ms": 21.1,
+          "p90_ms": 21.9
+        },
+        "4": {
+          "input_shapes": {
+            "input": [
+              "batch",
+              3,
+              256,
+              192
+            ]
+          },
+          "output_names": [
+            "simcc_x",
+            "simcc_y"
+          ],
+          "median_ms": 14.4,
+          "p90_ms": 14.9
+        }
+      }
+    }
+  }
+}

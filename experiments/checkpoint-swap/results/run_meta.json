@@ -1,0 +1,66 @@
+{
+  "ticket": 20,
+  "dataset": "COCO val2017 person keypoints",
+  "cohort": "reused verbatim from experiments/rear-view (ticket #18)",
+  "cohort_size": 1675,
+  "crop_pad": 1.25,
+  "mode": "IMAGE / static single-image inference only",
+  "score_threshold_applied_at_record_time": null,
+  "decode": "rtmlib RTMPose, the same reference implementation as #18/#19",
+  "pose_arms": {
+    "body7_official": {
+      "source": "https://download.openmmlab.com/mmpose/v1/projects/rtmposev1/onnx_sdk/rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504.zip"
+    },
+    "body7_self": {
+      "checkpoint": "rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504.pth",
+      "checkpoint_sha256": "e48f03d0cfe1285ee8b6d3457ac3ce33a4594a92b080053ab1ec4a7e300975f2",
+      "checkpoint_bytes": 54551099,
+      "onnx": "/home/luken/.cache/poseperfect-checkpoint-swap/onnx/body7/end2end.onnx",
+      "onnx_bytes": 54369767
+    },
+    "aic_coco_self": {
+      "checkpoint": "rtmpose-m_simcc-aic-coco_pt-aic-coco_420e-256x192-63eb25f7_20230126.pth",
+      "checkpoint_sha256": "5e55be2a03f6e5dcd14d088afc4ae5afe94a4f9de93c22e5deb725ad0eee899d",
+      "checkpoint_bytes": 54536690,
+      "onnx": "/home/luken/.cache/poseperfect-checkpoint-swap/onnx/aic-coco/end2end.onnx",
+      "onnx_bytes": 54369767
+    },
+    "coco_self": {
+      "checkpoint": "rtmpose-m_simcc-coco_pt-aic-coco_420e-256x192-d8dd5ca4_20230127.pth",
+      "checkpoint_sha256": "929f00f2d84764aa0297decf13a84556642e43cbf5fca8cfb16e7326d92dfd97",
+      "checkpoint_bytes": 54535816,
+      "onnx": "/home/luken/.cache/poseperfect-checkpoint-swap/onnx/coco/end2end.onnx",
+      "onnx_bytes": 54369767
+    }
+  },
+  "box_sources": [
+    "gt_box",
+    "rtmdet_ins_tiny"
+  ],
+  "detector": {
+    "name": "rtmdet_ins_tiny",
+    "checkpoint": "rtmdet-ins_tiny_8xb32-300e_coco_20221130_151727-ec670f7e.pth",
+    "checkpoint_bytes": 22757492
+  },
+  "hardware": "CPU only, Linux, Python 3.10",
+  "seconds": 231.1,
+  "shards": 5,
+  "timing_note": "wall clock under a sharded run is contended and is not a clean timing; see results/onnx_cost.json",
+  "passes": [
+    {
+      "arms": [
+        "aic_coco_self",
+        "body7_official",
+        "body7_self"
+      ],
+      "seconds": 231.1
+    },
+    {
+      "arms": [
+        "coco_self"
+      ],
+      "seconds": 450.1
+    }
+  ],
+  "merge_note": "produced in more than one pass and concatenated; analyse.py verifies that every arm saw the identical detector box before reporting"
+}
