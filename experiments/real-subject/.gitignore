@@ -1,0 +1,13 @@
+# Photographs of the subject NEVER enter git. The repository is public by map
+# decision 11, and these are pictures of Lucas in posing trunks. results/
+# shotlog.csv carries a SHA256 per file, which is what keeps a published number
+# traceable to a file that was deliberately not published - the same arrangement
+# tickets #18, #19 and #20 have with COCO's 1 GB.
+*.jpg
+*.jpeg
+*.heic
+*.png
+results/_synthetic/
+__pycache__/
+.venv/
+.venv310/

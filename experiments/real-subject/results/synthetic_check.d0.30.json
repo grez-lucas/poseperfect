@@ -1,0 +1,67 @@
+{
+  "decisive_torso_frac": 0.3,
+  "wrist_ankle_split": 0.8,
+  "overall": {
+    "label": "ALL",
+    "instances": 681,
+    "coverage": 0.8325991189427313,
+    "no_marker_signal": 114,
+    "false_alarms": 4,
+    "false_alarm_rate": 0.0071301247771836,
+    "injected_n": 567,
+    "injected_recall": 0.9894179894179894,
+    "gt_swapped_present": 10
+  },
+  "by_orientation": [
+    {
+      "label": "FRONT",
+      "instances": 198,
+      "coverage": 0.8787878787878788,
+      "no_marker_signal": 24,
+      "false_alarms": 0,
+      "false_alarm_rate": 0.0,
+      "injected_n": 174,
+      "injected_recall": 1.0,
+      "gt_swapped_present": 0
+    },
+    {
+      "label": "OBLIQUE",
+      "instances": 197,
+      "coverage": 0.817258883248731,
+      "no_marker_signal": 36,
+      "false_alarms": 3,
+      "false_alarm_rate": 0.0189873417721519,
+      "injected_n": 161,
+      "injected_recall": 0.9875776397515528,
+      "gt_swapped_present": 4
+    },
+    {
+      "label": "PROFILE",
+      "instances": 93,
+      "coverage": 0.7419354838709677,
+      "no_marker_signal": 24,
+      "false_alarms": 0,
+      "false_alarm_rate": 0.0,
+      "injected_n": 69,
+      "injected_recall": 1.0,
+      "gt_swapped_present": 1
+    },
+    {
+      "label": "REAR",
+      "instances": 193,
+      "coverage": 0.844559585492228,
+      "no_marker_signal": 30,
+      "false_alarms": 1,
+      "false_alarm_rate": 0.00625,
+      "injected_n": 163,
+      "injected_recall": 0.9754601226993865,
+      "gt_swapped_present": 5
+    }
+  ],
+  "marker_buckets": {
+    "unassigned": 0,
+    "ambiguous": 560,
+    "gross_miss": 132,
+    "scored": 1333
+  }
+}
